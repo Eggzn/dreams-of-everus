@@ -1,0 +1,20 @@
+{
+    "name": "DreamsOfEverus.Editor",
+    "rootNamespace": "DreamsOfEverus.EditorTools",
+    "references": [
+        "DreamsOfEverus.Simulation",
+        "DreamsOfEverus.Game",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

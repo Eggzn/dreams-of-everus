@@ -25,7 +25,7 @@ namespace DreamsOfEverus.Tests
         public void Step_AdvancesTickByOne()
         {
             var state = new GameState();
-            new GameSimulation().Step(state, default);
+            TestWorld.EmptySimulation().Step(state, default);
             Assert.AreEqual(1, state.Tick);
         }
 
@@ -34,8 +34,8 @@ namespace DreamsOfEverus.Tests
         {
             var a = new GameState();
             var b = new GameState();
-            Run(new GameSimulation(), a, 0, 300);
-            Run(new GameSimulation(), b, 0, 300);
+            Run(TestWorld.EmptySimulation(), a, 0, 300);
+            Run(TestWorld.EmptySimulation(), b, 0, 300);
             Assert.IsTrue(a.SameAs(b));
         }
 
@@ -43,10 +43,10 @@ namespace DreamsOfEverus.Tests
         public void Clone_IsIndependentCopy()
         {
             var state = new GameState();
-            Run(new GameSimulation(), state, 0, 10);
+            Run(TestWorld.EmptySimulation(), state, 0, 10);
             GameState copy = state.Clone();
 
-            Run(new GameSimulation(), state, 10, 20);
+            Run(TestWorld.EmptySimulation(), state, 10, 20);
 
             Assert.AreEqual(10, copy.Tick);
             Assert.AreEqual(20, state.Tick);
@@ -55,7 +55,7 @@ namespace DreamsOfEverus.Tests
         [Test]
         public void RestoreSnapshot_ThenReplay_MatchesOriginal()
         {
-            var sim = new GameSimulation();
+            var sim = TestWorld.EmptySimulation();
             var state = new GameState();
             Run(sim, state, 0, 60);
             GameState snapshot = state.Clone();

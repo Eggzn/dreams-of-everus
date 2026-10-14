@@ -16,9 +16,13 @@ namespace DreamsOfEverus.Game
     /// </summary>
     public class SimulationRunner : MonoBehaviour
     {
+        [Tooltip("The player character's data asset (body size, movement values...).")]
+        [SerializeField] private CharacterData playerCharacter;
+
         [Tooltip("If the game falls behind (e.g. a lag spike), at most this many ticks run in one frame.")]
         [SerializeField] private int maxTicksPerFrame = 5;
 
+        public CharacterData PlayerCharacter => playerCharacter;
         public GameState State { get; private set; }
         public GameState PreviousState { get; private set; }
 
@@ -27,13 +31,23 @@ namespace DreamsOfEverus.Game
 
         private const double TickDuration = 1.0 / GameSimulation.TicksPerSecond;
 
-        private readonly GameSimulation simulation = new GameSimulation();
+        private GameSimulation simulation;
         private IInputSource inputSource;
         private double accumulatedTime;
 
         private void Awake()
         {
-            State = new GameState();
+            if (playerCharacter == null)
+            {
+                Debug.LogError("SimulationRunner: no Player Character data assigned.", this);
+                enabled = false;
+                return;
+            }
+
+            LevelGeometry level = LevelBaker.BakeScene();
+            simulation = new GameSimulation(level, playerCharacter.ToFighterConfig());
+
+            State = simulation.CreateInitialState();
             PreviousState = State.Clone();
             inputSource = GetComponent<IInputSource>();
         }
