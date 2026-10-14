@@ -2,16 +2,16 @@ namespace DreamsOfEverus.Simulation
 {
     /// <summary>
     /// The movement rules: walking, dashing, trot and dash dance, running and turning around,
-    /// jump squat, short hop, air jump, air control, gravity, fast-fall and drop-through.
+    /// crouching and crawling, jump squat, short hop, air jump, air control, gravity, fast-fall and drop-through.
     /// Each tick: UpdateBeforeMove sets the velocity, the KinematicMover moves the fighter,
     /// then UpdateAfterMove handles landing and walking off ledges.
     /// </summary>
     public static class FighterMovement
     {
-        public static void UpdateBeforeMove(ref FighterState fighter, in InputEvents input, FighterConfig config)
+        public static void UpdateBeforeMove(ref FighterState fighter, in InputEvents input, FighterConfig config, LevelGeometry level)
         {
             if (fighter.Action == FighterAction.Airborne) UpdateAir(ref fighter, input, config);
-            else UpdateGround(ref fighter, input, config);
+            else UpdateGround(ref fighter, input, config, level);
         }
 
         public static void UpdateAfterMove(ref FighterState fighter)
@@ -40,14 +40,17 @@ namespace DreamsOfEverus.Simulation
 
         // ----- Ground -----
 
-        private static void UpdateGround(ref FighterState fighter, in InputEvents input, FighterConfig config)
+        private static void UpdateGround(ref FighterState fighter, in InputEvents input, FighterConfig config, LevelGeometry level)
         {
             fighter.Velocity.Y = Fixed.Zero;
+
+            // Under a low ceiling the fighter has to stay crouched: no standing up, no jumping.
+            bool roomToStand = KinematicMover.HasRoomToStand(fighter, config, level);
 
             // Jumping and dropping through work from any ground action except jump squat itself.
             if (fighter.Action != FighterAction.JumpSquat)
             {
-                if (input.JumpPressed)
+                if (input.JumpPressed && roomToStand)
                 {
                     SetAction(ref fighter, FighterAction.JumpSquat);
                     fighter.ShortHopQueued = false;
@@ -56,6 +59,10 @@ namespace DreamsOfEverus.Simulation
                 {
                     SetAction(ref fighter, FighterAction.Airborne);
                     return;
+                }
+                else if (input.HeldDown && !fighter.IsLow)
+                {
+                    SetAction(ref fighter, FighterAction.Crouch);
                 }
             }
 
@@ -74,6 +81,10 @@ namespace DreamsOfEverus.Simulation
                 case FighterAction.RunTurnaround:
                     UpdateRunTurnaround(ref fighter, input, config);
                     break;
+                case FighterAction.Crouch:
+                case FighterAction.Crawl:
+                    UpdateCrouchOrCrawl(ref fighter, input, config, mustStayLow: !roomToStand);
+                    break;
                 case FighterAction.JumpSquat:
                     UpdateJumpSquat(ref fighter, input, config);
                     break;
@@ -82,9 +93,10 @@ namespace DreamsOfEverus.Simulation
 
         private static void UpdateIdleOrWalk(ref FighterState fighter, in InputEvents input, FighterConfig config)
         {
-            if (input.DoubleTapX)
+            // A hard sideways press dashes (like a smash input). A gentle tilt walks.
+            if (input.HardPressX != 0)
             {
-                StartDash(ref fighter, input.PressedDirectionX, config);
+                StartDash(ref fighter, input.HardPressX, config);
                 return;
             }
 
@@ -112,10 +124,10 @@ namespace DreamsOfEverus.Simulation
 
         private static void UpdateDash(ref FighterState fighter, in InputEvents input, FighterConfig config)
         {
-            // Dash dance: one press the other way during the trot instantly dashes that way.
-            if (input.PressedDirectionX == -fighter.Facing)
+            // Dash dance: a hard press the other way during the trot instantly dashes that way.
+            if (input.HardPressX == -fighter.Facing)
             {
-                StartDash(ref fighter, input.PressedDirectionX, config);
+                StartDash(ref fighter, input.HardPressX, config);
                 return;
             }
 
@@ -169,6 +181,31 @@ namespace DreamsOfEverus.Simulation
             }
         }
 
+        private static void UpdateCrouchOrCrawl(ref FighterState fighter, in InputEvents input, FighterConfig config, bool mustStayLow)
+        {
+            // Let go of Down to stand up, unless there's no room above.
+            if (!input.HeldDown && !mustStayLow)
+            {
+                SetAction(ref fighter, FighterAction.Idle);
+                UpdateIdleOrWalk(ref fighter, input, config);
+                return;
+            }
+
+            if (config.CanCrawl && input.HeldDirectionX != 0)
+            {
+                if (fighter.Action != FighterAction.Crawl) SetAction(ref fighter, FighterAction.Crawl);
+                fighter.Facing = (sbyte)input.HeldDirectionX;
+
+                Fixed targetSpeed = config.CrawlSpeed * input.StickX / InputFrame.StickMax;
+                fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, targetSpeed, config.GroundAcceleration);
+            }
+            else
+            {
+                if (fighter.Action != FighterAction.Crouch) SetAction(ref fighter, FighterAction.Crouch);
+                fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, Fixed.Zero, config.GroundFriction);
+            }
+        }
+
         private static void UpdateJumpSquat(ref FighterState fighter, in InputEvents input, FighterConfig config)
         {
             // Smash-style short hop: let go of Jump before the squat ends.
@@ -177,6 +214,10 @@ namespace DreamsOfEverus.Simulation
             if (fighter.ActionTick >= config.JumpSquatTicks)
             {
                 fighter.Velocity.Y = fighter.ShortHopQueued ? config.ShortHopVelocity : config.FullHopVelocity;
+
+                // Momentum: a dash or run carries its speed into the jump (up to the character's limit).
+                fighter.Velocity.X = Fixed.Clamp(fighter.Velocity.X, -config.MaxJumpMomentum, config.MaxJumpMomentum);
+
                 fighter.Ground = GroundType.None;
                 SetAction(ref fighter, FighterAction.Airborne);
             }
@@ -205,16 +246,29 @@ namespace DreamsOfEverus.Simulation
                     : Fixed.Max(fighter.Velocity.Y - config.Gravity, -config.MaxFallSpeed);
             }
 
-            // Air control: steer toward the stick's direction, or drift to a stop when it's centered.
-            if (input.HeldDirectionX != 0)
-            {
-                Fixed targetSpeed = config.AirSpeed * input.StickX / InputFrame.StickMax;
-                fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, targetSpeed, config.AirAcceleration);
-            }
-            else
+            UpdateAirControl(ref fighter, input, config);
+        }
+
+        /// <summary>
+        /// Steering in the air. Holding a direction speeds you up toward air speed, but never slows down
+        /// momentum you already have in that direction (from a dash or run jump); that only fades with air friction.
+        /// Holding the other way brakes and turns you around.
+        /// </summary>
+        private static void UpdateAirControl(ref FighterState fighter, in InputEvents input, FighterConfig config)
+        {
+            if (input.HeldDirectionX == 0)
             {
                 fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, Fixed.Zero, config.AirFriction);
+                return;
             }
+
+            Fixed targetSpeed = config.AirSpeed * input.StickX / InputFrame.StickMax;
+            bool alreadyFaster = input.HeldDirectionX > 0
+                ? fighter.Velocity.X > targetSpeed
+                : fighter.Velocity.X < targetSpeed;
+
+            Fixed change = alreadyFaster ? config.AirFriction : config.AirAcceleration;
+            fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, targetSpeed, change);
         }
 
         private static void Land(ref FighterState fighter)

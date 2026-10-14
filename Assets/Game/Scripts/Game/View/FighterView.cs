@@ -18,26 +18,35 @@ namespace DreamsOfEverus.Game
         [Tooltip("The placeholder body (a capsule). Sized to match the character's collision box.")]
         [SerializeField] private Transform body;
 
-        private void Start()
-        {
-            if (runner == null || runner.PlayerCharacter == null || body == null) return;
-
-            // Unity's capsule is 1 wide and 2 tall at scale 1, with its pivot in the middle.
-            CharacterData data = runner.PlayerCharacter;
-            body.localScale = new Vector3(data.bodyWidth, data.bodyHeight * 0.5f, data.bodyWidth);
-            body.localPosition = new Vector3(0f, data.bodyHeight * 0.5f, 0f);
-        }
+        [Tooltip("The small block that shows which way the character faces.")]
+        [SerializeField] private Transform nose;
 
         private void LateUpdate()
         {
             if (runner == null || runner.State == null) return;
+            FighterState player = runner.State.Player;
 
             Vector2 previous = ToVector(runner.PreviousState.Player.Position);
-            Vector2 current = ToVector(runner.State.Player.Position);
+            Vector2 current = ToVector(player.Position);
             Vector2 shown = Vector2.Lerp(previous, current, runner.InterpolationAlpha);
             transform.position = new Vector3(shown.x, shown.y, 0f);
 
-            if (visualRoot != null) visualRoot.localRotation = Quaternion.Euler(0f, FacingAngle(runner.State.Player), 0f);
+            if (visualRoot != null) visualRoot.localRotation = Quaternion.Euler(0f, FacingAngle(player), 0f);
+            MatchBodySize(player);
+        }
+
+        // Sizes the placeholder capsule to the collision box: shorter while crouching or crawling.
+        private void MatchBodySize(FighterState player)
+        {
+            if (body == null || runner.PlayerConfig == null) return;
+
+            float width = runner.PlayerConfig.BodyWidth.ToFloat();
+            float height = runner.PlayerConfig.HeightFor(player).ToFloat();
+
+            // Unity's capsule is 1 wide and 2 tall at scale 1, with its pivot in the middle.
+            body.localScale = new Vector3(width, height * 0.5f, width);
+            body.localPosition = new Vector3(0f, height * 0.5f, 0f);
+            if (nose != null) nose.localPosition = new Vector3(width * 0.5f, height * 0.75f, 0f);
         }
 
         // 0 degrees faces right, 180 faces left. During a run turnaround the body swings around slowly.

@@ -249,7 +249,7 @@ Each milestone proves one thing and is playable when done. Suggested first big t
 
 - Step 0: check the existing Unity project and Git repo, add a Unity ignore file if missing, and connect the repo to GitHub.
 - A graybox room: floor, solid walls, platforms at different heights including pass-through platforms, a fall zone and a fixed respawn point.
-- A placeholder Bun with walk, dash (double-tap forward or back), trot, dash dance, run, run turnaround, jump, short hop, one air jump, fast-fall and drop-through. **Trot** is the length of a character's initial dash; one press of the opposite direction during it dashes the other way (dash dance); turning after it, while running, forces the slower run turnaround. All values are per character.
+- A placeholder Bun with walk, dash (hard press, like a Smash input), trot, dash dance, run, run turnaround, crouch, crawl (some characters, including Bun Jester), jump with dash/run momentum, short hop, one air jump, fast-fall and drop-through. **Trot** is the length of a character's initial dash; a hard press the other way during it dashes that way (dash dance); turning after it, while running, forces the slower run turnaround. All values are per character.
 - A light attack (Square) with a visible hitbox and a standing training dummy that reacts when hit. No damage, Fragility or knockback yet.
 - The rollback-ready foundation: a fixed 60-per-second game step, inputs read once per frame, custom collision, no Unity physics for gameplay, fixed-point math for gameplay numbers.
 - Side-on follow camera; controller and keyboard input through named actions.

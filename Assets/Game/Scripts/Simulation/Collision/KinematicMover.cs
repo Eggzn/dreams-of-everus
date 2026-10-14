@@ -10,11 +10,28 @@ namespace DreamsOfEverus.Simulation
         /// <summary>How far below a platform's top the feet are placed when dropping through (1/256 unit, invisible).</summary>
         private static readonly Fixed DropThroughNudge = Fixed.FromFraction(1, 256);
 
-        public static FixedBox BodyBox(FixedVector2 feet, FighterConfig config)
+        /// <summary>The fighter's collision box right now (shorter while crouching or crawling).</summary>
+        public static FixedBox BodyBox(in FighterState fighter, FighterConfig config)
+        {
+            return BoxAt(fighter.Position, config.HalfWidth, config.HeightFor(fighter));
+        }
+
+        /// <summary>False when something solid is in the way of standing up (e.g. crawling under a low ceiling).</summary>
+        public static bool HasRoomToStand(in FighterState fighter, FighterConfig config, LevelGeometry level)
+        {
+            FixedBox standing = BoxAt(fighter.Position, config.HalfWidth, config.BodyHeight);
+            foreach (LevelBlock block in level.Blocks)
+            {
+                if (block.Kind == LevelBlockKind.Solid && block.Box.Overlaps(standing)) return false;
+            }
+            return true;
+        }
+
+        private static FixedBox BoxAt(FixedVector2 feet, Fixed halfWidth, Fixed height)
         {
             return new FixedBox(
-                new FixedVector2(feet.X - config.HalfWidth, feet.Y),
-                new FixedVector2(feet.X + config.HalfWidth, feet.Y + config.BodyHeight));
+                new FixedVector2(feet.X - halfWidth, feet.Y),
+                new FixedVector2(feet.X + halfWidth, feet.Y + height));
         }
 
         public static void Move(ref FighterState fighter, FighterConfig config, LevelGeometry level)
@@ -65,7 +82,7 @@ namespace DreamsOfEverus.Simulation
 
             Fixed half = config.HalfWidth;
             Fixed bottom = fighter.Position.Y;
-            Fixed top = bottom + config.BodyHeight;
+            Fixed top = bottom + config.HeightFor(fighter);
             Fixed oldX = fighter.Position.X;
             Fixed targetX = oldX + velocityX;
             bool blocked = false;
@@ -105,6 +122,7 @@ namespace DreamsOfEverus.Simulation
             Fixed right = fighter.Position.X + config.HalfWidth;
             Fixed oldY = fighter.Position.Y;
             Fixed targetY = oldY + velocityY;
+            Fixed height = config.HeightFor(fighter);
             bool blocked = false;
 
             foreach (LevelBlock block in level.Blocks)
@@ -126,10 +144,10 @@ namespace DreamsOfEverus.Simulation
                 else if (block.Kind == LevelBlockKind.Solid)
                 {
                     // Rising: only solids stop the head. Pass-through platforms let you jump up through.
-                    Fixed oldTop = oldY + config.BodyHeight;
-                    if (oldTop <= box.Min.Y && targetY + config.BodyHeight > box.Min.Y)
+                    Fixed oldTop = oldY + height;
+                    if (oldTop <= box.Min.Y && targetY + height > box.Min.Y)
                     {
-                        targetY = box.Min.Y - config.BodyHeight;
+                        targetY = box.Min.Y - height;
                         blocked = true;
                     }
                 }

@@ -34,11 +34,11 @@ namespace DreamsOfEverus.Simulation
             ref FighterState player = ref state.Player;
 
             InputEvents events = FighterInput.Read(ref player, input, inputFeel);
-            FighterMovement.UpdateBeforeMove(ref player, events, playerConfig);
+            FighterMovement.UpdateBeforeMove(ref player, events, playerConfig, level);
             KinematicMover.Move(ref player, playerConfig, level);
             FighterMovement.UpdateAfterMove(ref player);
 
-            if (level.TouchesFallZone(KinematicMover.BodyBox(player.Position, playerConfig)))
+            if (level.TouchesFallZone(KinematicMover.BodyBox(player, playerConfig)))
             {
                 PlaceAtRespawn(ref player);
             }

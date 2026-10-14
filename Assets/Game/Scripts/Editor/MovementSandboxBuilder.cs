@@ -76,6 +76,9 @@ namespace DreamsOfEverus.EditorTools
             CreateBox("Platform Mid (Pass Through) 2", level, new Vector2(5f, 3f), new Vector2(4f, 0.3f), LevelBlockKind.PassThrough, passThrough);
             CreateBox("Platform High (Solid)", level, new Vector2(10f, 6.25f), new Vector2(4f, 0.5f), LevelBlockKind.Solid, solid);
 
+            // Crawl tunnel: a low solid ceiling 1.3 units above the floor. Too low to stand under, high enough to crawl.
+            CreateBox("Crawl Tunnel Ceiling", level, new Vector2(10.5f, 2.15f), new Vector2(4f, 1.7f), LevelBlockKind.Solid, solid);
+
             // Below the whole room, so anything that drops through the gap lands in it.
             CreateBox("Fall Zone", level, new Vector2(0f, -9f), new Vector2(32f, 4f), LevelBlockKind.FallZone, fallZone);
 
@@ -111,6 +114,7 @@ namespace DreamsOfEverus.EditorTools
             SetField(view, "runner", runner);
             SetField(view, "visualRoot", visual);
             SetField(view, "body", body.transform);
+            SetField(view, "nose", nose.transform);
 
             // ----- Camera: fixed overview for now; the follow camera comes in a later step -----
             GameObject cameraObject = GameObject.FindWithTag("MainCamera");

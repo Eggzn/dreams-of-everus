@@ -31,9 +31,9 @@ namespace DreamsOfEverus.Game
         [Min(0f)] public float groundFriction = 40f;
 
         [Header("Dash, trot and run (PLACEHOLDER)")]
-        [Tooltip("Speed of the initial dash (started by double-tapping), in units per second.")]
+        [Tooltip("Speed of the initial dash (started by a hard sideways press), in units per second.")]
         [Min(0.1f)] public float dashSpeed = 11f;
-        [Tooltip("The trot: how far the initial dash travels, in units. During the trot, one press the other way dash dances. After it, the character runs.")]
+        [Tooltip("The trot: how far the initial dash travels, in units. During the trot, a hard press the other way dash dances. After it, the character runs.")]
         [Min(0.05f)] public float trotDistance = 2.2f;
         [Tooltip("Top running speed (after the trot), in units per second.")]
         [Min(0f)] public float runSpeed = 9f;
@@ -41,6 +41,14 @@ namespace DreamsOfEverus.Game
         [Min(1)] public int runTurnaroundFrames = 12;
         [Tooltip("How quickly the character skids to a stop during the run turnaround, in units per second, per second.")]
         [Min(0f)] public float runTurnaroundDeceleration = 60f;
+
+        [Header("Crouch and crawl (PLACEHOLDER)")]
+        [Tooltip("Body height while crouching or crawling, in units. Lets the character fit under low ceilings.")]
+        [Min(0.1f)] public float crouchHeight = 1.0f;
+        [Tooltip("Whether this character can crawl (move while crouched). Every character can crouch.")]
+        public bool canCrawl = false;
+        [Tooltip("Top crawling speed at full tilt, in units per second.")]
+        [Min(0f)] public float crawlSpeed = 2.5f;
 
         [Header("Jump (PLACEHOLDER)")]
         [Tooltip("Frames of crouch before leaving the ground. Release Jump during these for a short hop.")]
@@ -53,6 +61,8 @@ namespace DreamsOfEverus.Game
         [Min(0.1f)] public float airJumpHeight = 3.5f;
         [Tooltip("How many jumps the character can do in the air before landing.")]
         [Min(0)] public int airJumps = 1;
+        [Tooltip("Most sideways speed carried from the ground into a jump, in units per second. Higher = dash and run jumps travel further.")]
+        [Min(0f)] public float maxJumpMomentum = 11f;
 
         [Header("Air (PLACEHOLDER)")]
         [Tooltip("How strongly the character is pulled down, in units per second, per second. Also changes how jump heights feel.")]
@@ -90,11 +100,16 @@ namespace DreamsOfEverus.Game
             config.RunTurnaroundTicks = runTurnaroundFrames;
             config.RunTurnaroundDeceleration = PerTickSquared(runTurnaroundDeceleration);
 
+            config.CrouchHeight = Fixed.FromFloat(Math.Min(crouchHeight, bodyHeight));
+            config.CanCrawl = canCrawl;
+            config.CrawlSpeed = PerTick(crawlSpeed);
+
             config.JumpSquatTicks = jumpSquatFrames;
             config.FullHopVelocity = JumpVelocityFor(fullHopHeight);
             config.ShortHopVelocity = JumpVelocityFor(shortHopHeight);
             config.AirJumpVelocity = JumpVelocityFor(airJumpHeight);
             config.AirJumps = airJumps;
+            config.MaxJumpMomentum = PerTick(maxJumpMomentum);
 
             config.Gravity = PerTickSquared(gravity);
             config.MaxFallSpeed = PerTick(maxFallSpeed);

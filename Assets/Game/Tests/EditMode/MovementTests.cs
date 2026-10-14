@@ -29,10 +29,9 @@ namespace DreamsOfEverus.Tests
             for (int i = 0; i < ticks; i++) sim.Step(state, input);
         }
 
-        private void DoubleTap(int direction)
+        /// <summary>A hard sideways press (stick straight from center to full in one tick), like a smash input.</summary>
+        private void HardPress(int direction)
         {
-            Hold(In(100 * direction));
-            Hold(In(0));
             Hold(In(100 * direction));
         }
 
@@ -76,35 +75,171 @@ namespace DreamsOfEverus.Tests
         }
 
         [Test]
-        public void SingleTap_Walks_DoesNotDash()
+        public void HardPress_StartsDash()
         {
-            Hold(In(100));
-            Assert.AreEqual(FighterAction.Walk, Player.Action);
-        }
-
-        [Test]
-        public void DoubleTap_StartsDash()
-        {
-            DoubleTap(1);
+            HardPress(1);
 
             Assert.AreEqual(FighterAction.Dash, Player.Action);
             Assert.AreEqual(fighter.DashSpeed, Player.Velocity.X);
         }
 
         [Test]
-        public void DoubleTap_TooSlow_JustWalks()
+        public void SlowTiltToFull_Walks_DoesNotDash()
         {
-            Hold(In(100));
-            Hold(In(0), 20); // longer than the double-tap window
-            Hold(In(100));
+            for (int x = 30; x <= 100; x += 10) Hold(In(x)); // eases over 8 ticks
 
             Assert.AreEqual(FighterAction.Walk, Player.Action);
+            Assert.AreEqual(fighter.WalkSpeed, Player.Velocity.X);
+        }
+
+        [Test]
+        public void DashDance_SlowTiltBack_DoesNotDashDance()
+        {
+            HardPress(1);
+            foreach (int x in new[] { 60, 20, -30, -40, -50, -60, -70 }) Hold(In(x)); // eases back over 7 ticks
+
+            Assert.AreEqual(1, Player.Facing);
+            Assert.AreNotEqual(-fighter.DashSpeed, Player.Velocity.X);
+        }
+
+        // ----- Momentum -----
+
+        /// <summary>Jumps with the stick held right and returns how far right the fighter travels in the air.</summary>
+        private Fixed AirDistanceOfJump()
+        {
+            Hold(In(100, 0, jump: true), fighter.JumpSquatTicks + 1);
+            Fixed takeoffX = Player.Position.X;
+            while (!Player.IsGrounded) Hold(In(100, 0, jump: true));
+            return Player.Position.X - takeoffX;
+        }
+
+        [Test]
+        public void DashJump_TravelsFurtherThanWalkJump()
+        {
+            for (int x = 30; x <= 100; x += 10) Hold(In(x)); // walking at full tilt
+            Hold(In(100), 10);
+            Fixed walkJump = AirDistanceOfJump();
+
+            SetUp();
+            HardPress(1);
+            Hold(In(100), 2); // still dashing
+            Fixed dashJump = AirDistanceOfJump();
+
+            Assert.Greater(dashJump.Raw, walkJump.Raw);
+        }
+
+        [Test]
+        public void JumpMomentum_IsCappedByCharacter()
+        {
+            fighter.MaxJumpMomentum = F(1, 10); // lower than dash speed
+            HardPress(1);
+            Hold(In(100, 0, jump: true), fighter.JumpSquatTicks + 1);
+
+            Assert.LessOrEqual(Player.Velocity.X.Raw, fighter.MaxJumpMomentum.Raw);
+        }
+
+        [Test]
+        public void HoldingForwardInAir_DoesNotSlowDashMomentumBelowFriction()
+        {
+            HardPress(1);
+            Hold(In(100, 0, jump: true), fighter.JumpSquatTicks + 1);
+            Fixed launchSpeed = Player.Velocity.X;
+            Hold(In(100), 1);
+
+            Assert.AreEqual(launchSpeed - fighter.AirFriction, Player.Velocity.X);
+        }
+
+        // ----- Crouch and crawl -----
+
+        [Test]
+        public void HoldDown_Crouches_AndShrinksBody()
+        {
+            Hold(In(0, -100), 3);
+
+            Assert.AreEqual(FighterAction.Crouch, Player.Action);
+            Assert.AreEqual(fighter.CrouchHeight, fighter.HeightFor(Player));
+        }
+
+        [Test]
+        public void ReleaseDown_StandsUp()
+        {
+            Hold(In(0, -100), 3);
+            Hold(In());
+
+            Assert.AreEqual(FighterAction.Idle, Player.Action);
+            Assert.AreEqual(fighter.BodyHeight, fighter.HeightFor(Player));
+        }
+
+        [Test]
+        public void DownAndSideways_Crawls()
+        {
+            Hold(In(0, -100), 2);
+            Hold(In(100, -100), 30);
+
+            Assert.AreEqual(FighterAction.Crawl, Player.Action);
+            Assert.AreEqual(fighter.CrawlSpeed, Player.Velocity.X);
+        }
+
+        [Test]
+        public void CharacterThatCannotCrawl_StaysCrouched()
+        {
+            fighter.CanCrawl = false;
+            Hold(In(0, -100), 2);
+            Hold(In(100, -100), 30);
+
+            Assert.AreEqual(FighterAction.Crouch, Player.Action);
+            Assert.AreEqual(F(0), Player.Velocity.X);
+        }
+
+        private void AddLowCeiling()
+        {
+            // Solid ceiling from x = 5 to 10, 1.5 units above the floor: crawl height 1 fits, standing height 2 doesn't.
+            level.Add(new FixedBox(V(F(5), F(3, 2)), V(F(10), F(3))), LevelBlockKind.Solid);
+        }
+
+        [Test]
+        public void Standing_IsBlockedByLowCeiling()
+        {
+            AddLowCeiling();
+            for (int x = 30; x <= 100; x += 10) Hold(In(x));
+            Hold(In(100), 120);
+
+            Assert.AreEqual(F(9, 2), Player.Position.X); // stopped at the ceiling's edge (5 minus half the body)
+        }
+
+        [Test]
+        public void CrawlingUnderLowCeiling_CantStandOrJump()
+        {
+            AddLowCeiling();
+            Hold(In(0, -100), 2);
+            Hold(In(100, -100), 150); // crawl in
+            Assert.Greater(Player.Position.X.Raw, F(6).Raw);
+
+            Hold(In()); // let go of everything
+            Assert.AreEqual(FighterAction.Crouch, Player.Action);
+
+            Hold(In(jump: true), 10);
+            Assert.AreEqual(FighterAction.Crouch, Player.Action);
+            Assert.AreEqual(F(0), Player.Position.Y);
+        }
+
+        [Test]
+        public void CrawlingOutFromUnderCeiling_CanStandAgain()
+        {
+            AddLowCeiling();
+            Hold(In(0, -100), 2);
+            Hold(In(100, -100), 150);
+            Hold(In(100), 200); // keep crawling right, without holding Down, until clear of the ceiling
+
+            Assert.Greater(Player.Position.X.Raw, F(10).Raw);
+            Assert.AreNotEqual(FighterAction.Crawl, Player.Action);
+            Assert.AreEqual(fighter.BodyHeight, fighter.HeightFor(Player));
         }
 
         [Test]
         public void Dash_LastsForTrot_ThenRunsIfHeld()
         {
-            DoubleTap(1);
+            HardPress(1);
             Fixed startX = Player.Position.X - fighter.DashSpeed; // where the dash began
             Hold(In(100), fighter.TrotTicks - 1);
             Assert.AreEqual(FighterAction.Dash, Player.Action);
@@ -117,7 +252,7 @@ namespace DreamsOfEverus.Tests
         [Test]
         public void Dash_Released_StopsAfterTrot()
         {
-            DoubleTap(1);
+            HardPress(1);
             Hold(In(0), fighter.TrotTicks);
             Assert.AreEqual(FighterAction.Idle, Player.Action);
         }
@@ -125,7 +260,7 @@ namespace DreamsOfEverus.Tests
         [Test]
         public void DashDance_OnePressBackDuringTrot_DashesTheOtherWay()
         {
-            DoubleTap(1);
+            HardPress(1);
             Hold(In(100), 3);
             Hold(In(-100)); // single press back, still within the trot
 
@@ -137,7 +272,7 @@ namespace DreamsOfEverus.Tests
         [Test]
         public void PressBackAfterTrot_ForcesSlowRunTurnaround()
         {
-            DoubleTap(1);
+            HardPress(1);
             Hold(In(100), fighter.TrotTicks); // now running
             Assert.AreEqual(FighterAction.Run, Player.Action);
 

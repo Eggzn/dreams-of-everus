@@ -27,11 +27,16 @@ namespace DreamsOfEverus.Tests
             RunTurnaroundTicks = 8,
             RunTurnaroundDeceleration = F(1, 50),
 
+            CrouchHeight = F(1),
+            CanCrawl = true,
+            CrawlSpeed = F(1, 20),
+
             JumpSquatTicks = 3,
             FullHopVelocity = F(1, 2),
             ShortHopVelocity = F(3, 10),
             AirJumpVelocity = F(2, 5),
             AirJumps = 1,
+            MaxJumpMomentum = F(1, 4),
 
             Gravity = F(1, 40),
             MaxFallSpeed = F(1, 2),
@@ -46,7 +51,7 @@ namespace DreamsOfEverus.Tests
             StickDeadzone = 25,
             PressThreshold = 70,
             HardPressWindowTicks = 3,
-            DoubleTapWindowTicks = 12,
+            CrouchThreshold = 50,
         };
 
         /// <summary>A box given by its left, bottom, right and top edges.</summary>

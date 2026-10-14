@@ -13,11 +13,13 @@ namespace DreamsOfEverus.Simulation
     {
         Idle,          // Standing still (or sliding to a stop)
         Walk,          // Tilting the stick: speed follows how far it's tilted
-        Dash,          // Started by a double-tap. Lasts for the character's trot; one press back dash dances
+        Dash,          // Started by a hard sideways press. Lasts for the character's trot; a hard press back dash dances
         Run,           // Holding the direction after the trot ends
         RunTurnaround, // Pressing back while running: the slower skid-and-turn
         JumpSquat,     // The few frames of crouch before leaving the ground
         Airborne,      // In the air (jumping, falling, or after walking off a ledge)
+        Crouch,        // Holding Down on the ground: shorter body
+        Crawl,         // Crouching and moving (only characters that can crawl)
     }
 
     /// <summary>
@@ -40,13 +42,14 @@ namespace DreamsOfEverus.Simulation
         public bool IsFastFalling;        // Set by a hard press of Down while falling; cleared on landing or air jump
         public bool ShortHopQueued;       // Jump was released during jump squat, so this jump will be a short hop
 
-        // Input history, used to spot double-taps and hard presses. Part of the state so rollback replays them exactly.
-        public InputFrame PreviousInput;      // Last tick's input
-        public sbyte LastPressDirectionX;     // Direction of the last sideways press (-1, 0 or 1)
-        public byte TicksSinceLastPressX;     // Ticks since that press (stops counting at 255)
-        public byte TicksSinceStickYNeutral;  // Ticks since the stick was last not pressed down (stops at 255)
+        // Input history, used to spot hard presses. Part of the state so rollback replays them exactly.
+        public InputFrame PreviousInput;  // Last tick's input
+        public byte TicksPushedLeft;      // How many ticks in a row the stick has been pushed left (stops at 255)
+        public byte TicksPushedRight;     // ... pushed right
+        public byte TicksPushedDown;      // ... pushed down
 
         public bool IsGrounded => Ground != GroundType.None;
+        public bool IsLow => Action == FighterAction.Crouch || Action == FighterAction.Crawl;
     }
 
     /// <summary>

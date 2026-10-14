@@ -22,12 +22,18 @@ namespace DreamsOfEverus.Simulation
         public int RunTurnaroundTicks;
         public Fixed RunTurnaroundDeceleration;
 
+        // Crouch and crawl
+        public Fixed CrouchHeight;          // Body height while crouching or crawling
+        public bool CanCrawl;
+        public Fixed CrawlSpeed;
+
         // Jumping
         public int JumpSquatTicks;
         public Fixed FullHopVelocity;
         public Fixed ShortHopVelocity;
         public Fixed AirJumpVelocity;
         public int AirJumps;
+        public Fixed MaxJumpMomentum;       // Most sideways speed carried from the ground into a jump
 
         // Air
         public Fixed Gravity;
@@ -36,6 +42,9 @@ namespace DreamsOfEverus.Simulation
         public Fixed AirSpeed;
         public Fixed AirAcceleration;
         public Fixed AirFriction;
+
+        /// <summary>Body height right now: shorter while crouching or crawling.</summary>
+        public Fixed HeightFor(in FighterState fighter) => fighter.IsLow ? CrouchHeight : BodyHeight;
     }
 
     /// <summary>How inputs are interpreted (shared by all characters). Stick values are -100..100.</summary>
@@ -43,7 +52,7 @@ namespace DreamsOfEverus.Simulation
     {
         public int StickDeadzone;        // Below this, the stick counts as centered
         public int PressThreshold;       // How far the stick must go to count as a press
-        public int HardPressWindowTicks; // A press counts as "hard" if it gets there within this many ticks of being centered
-        public int DoubleTapWindowTicks; // Max ticks between the two presses of a double-tap
+        public int HardPressWindowTicks; // A press counts as "hard" if it gets there within this many ticks of starting to push
+        public int CrouchThreshold;      // How far down the stick must be held to crouch
     }
 }
