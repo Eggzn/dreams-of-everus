@@ -4,6 +4,8 @@ A 2D Metroidvania action-adventure with platform-fighter combat (in the style of
 
 The full design lives in `Docs/GameDesign.md`. Read the sections that matter for the current task before you start. That document overrides anything you assume.
 
+`Docs/CodeGuide.md` explains every code file line by line for the creator, and `Docs/Milestone1Checklist.md` is the Milestone 1 test checklist. When code changes, update the matching section of the code guide in the same commit.
+
 ## Current milestone
 
 **Milestone 1: Movement Sandbox V0.1.** Only build what is listed here.
