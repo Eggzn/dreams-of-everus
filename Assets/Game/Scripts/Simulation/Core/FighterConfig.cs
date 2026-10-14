@@ -43,6 +43,9 @@ namespace DreamsOfEverus.Simulation
         public Fixed AirAcceleration;
         public Fixed AirFriction;
 
+        // Attacks (null = this character has no light attack yet)
+        public AttackConfig LightAttack;
+
         /// <summary>Body height right now: shorter while crouching or crawling.</summary>
         public Fixed HeightFor(in FighterState fighter) => fighter.IsLow ? CrouchHeight : BodyHeight;
     }

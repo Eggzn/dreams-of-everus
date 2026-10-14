@@ -27,6 +27,7 @@ namespace DreamsOfEverus.Game
 
         public CharacterData PlayerCharacter => playerCharacter;
         public FighterConfig PlayerConfig { get; private set; }
+        public TrainingDummyConfig DummyConfig { get; private set; }
         public GameState State { get; private set; }
         public GameState PreviousState { get; private set; }
 
@@ -53,7 +54,9 @@ namespace DreamsOfEverus.Game
             inputFeelConfig = inputFeel.ToConfig();
 
             LevelGeometry level = LevelBaker.BakeScene();
-            simulation = new GameSimulation(level, PlayerConfig, inputFeelConfig);
+            TrainingDummy dummy = FindAnyObjectByType<TrainingDummy>();
+            DummyConfig = dummy != null ? dummy.ToConfig() : null;
+            simulation = new GameSimulation(level, PlayerConfig, inputFeelConfig, DummyConfig);
 
             State = simulation.CreateInitialState();
             PreviousState = State.Clone();

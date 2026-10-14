@@ -47,16 +47,22 @@ namespace DreamsOfEverus.Simulation
             // Under a low ceiling the fighter has to stay crouched: no standing up, no jumping.
             bool roomToStand = KinematicMover.HasRoomToStand(fighter, config, level);
 
-            // Jumping works from any ground action except jump squat itself.
+            // Jumping works from any ground action except jump squat and attacking (an attack is committed until it ends).
             // Dropping through and crouching don't work during the trot: rolling the stick through Down
             // mid-dash is how you moonwalk, so Down is ignored there.
             bool trotting = fighter.Action == FighterAction.Dash;
-            if (fighter.Action != FighterAction.JumpSquat)
+            bool committed = fighter.Action == FighterAction.JumpSquat || fighter.Action == FighterAction.LightAttack;
+            if (!committed)
             {
                 if (input.JumpPressed && roomToStand)
                 {
                     SetAction(ref fighter, FighterAction.JumpSquat);
                     fighter.ShortHopQueued = false;
+                }
+                else if (input.AttackPressed && CanStartLightAttack(fighter, config))
+                {
+                    SetAction(ref fighter, FighterAction.LightAttack);
+                    fighter.AttackHasHit = false;
                 }
                 else if (!trotting && input.HardPressDown && KinematicMover.TryDropThrough(ref fighter))
                 {
@@ -91,7 +97,41 @@ namespace DreamsOfEverus.Simulation
                 case FighterAction.JumpSquat:
                     UpdateJumpSquat(ref fighter, input, config);
                     break;
+                case FighterAction.LightAttack:
+                    UpdateLightAttack(ref fighter, input, config);
+                    break;
             }
+        }
+
+        // PLACEHOLDER rule: the light attack works from standing, walking, dashing and running.
+        // Crouching, crawling and turning around are left out (those would be different moves later).
+        private static bool CanStartLightAttack(in FighterState fighter, FighterConfig config)
+        {
+            if (config.LightAttack == null) return false;
+            switch (fighter.Action)
+            {
+                case FighterAction.Idle:
+                case FighterAction.Walk:
+                case FighterAction.Dash:
+                case FighterAction.Run:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static void UpdateLightAttack(ref FighterState fighter, in InputEvents input, FighterConfig config)
+        {
+            // The attack has run its full startup, active and recovery frames: back to normal movement.
+            if (fighter.ActionTick >= config.LightAttack.TotalTicks)
+            {
+                SetAction(ref fighter, FighterAction.Idle);
+                UpdateIdleOrWalk(ref fighter, input, config);
+                return;
+            }
+
+            // No steering while attacking: any speed from walking or dashing slides off on traction.
+            fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, Fixed.Zero, config.Traction);
         }
 
         private static void UpdateIdleOrWalk(ref FighterState fighter, in InputEvents input, FighterConfig config)

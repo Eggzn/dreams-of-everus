@@ -44,6 +44,15 @@ namespace DreamsOfEverus.Tests
             AirSpeed = F(1, 10),
             AirAcceleration = F(1, 50),
             AirFriction = F(1, 100),
+
+            LightAttack = new AttackConfig
+            {
+                StartupTicks = 3,
+                ActiveTicks = 2,
+                RecoveryTicks = 5,
+                HitboxOffset = V(1, 1),
+                HitboxSize = V(1, 1),
+            },
         };
 
         public static InputFeelConfig Feel() => new InputFeelConfig
@@ -59,10 +68,22 @@ namespace DreamsOfEverus.Tests
 
         public static GameSimulation EmptySimulation() => new GameSimulation(new LevelGeometry(), Fighter(), Feel());
 
-        /// <summary>An input frame: stick x/y from -100 to 100, plus Jump.</summary>
-        public static InputFrame In(int x = 0, int y = 0, bool jump = false)
+        /// <summary>An input frame: stick x/y from -100 to 100, plus Jump and Attack.</summary>
+        public static InputFrame In(int x = 0, int y = 0, bool jump = false, bool attack = false)
         {
-            return new InputFrame { MoveX = (sbyte)x, MoveY = (sbyte)y, Held = jump ? InputButtons.Jump : InputButtons.None };
+            var held = InputButtons.None;
+            if (jump) held |= InputButtons.Jump;
+            if (attack) held |= InputButtons.Attack;
+            return new InputFrame { MoveX = (sbyte)x, MoveY = (sbyte)y, Held = held };
         }
+
+        /// <summary>A 1 wide, 2 tall dummy standing at the given x on the floor (test values only).</summary>
+        public static TrainingDummyConfig Dummy(Fixed x) => new TrainingDummyConfig
+        {
+            Position = V(x, F(0)),
+            HurtboxWidth = F(1),
+            HurtboxHeight = F(2),
+            HitReactTicks = 6,
+        };
     }
 }

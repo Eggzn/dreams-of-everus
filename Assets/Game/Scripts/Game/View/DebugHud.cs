@@ -32,9 +32,22 @@ namespace DreamsOfEverus.Game
                 $"Ground: {p.Ground}\n" +
                 $"Air jumps used: {p.AirJumpsUsed}\n" +
                 $"Fast-falling: {(p.IsFastFalling ? "yes" : "no")}\n" +
-                $"Tick: {runner.State.Tick}   (F1 hides this)";
+                AttackLine(p) + "\n" +
+                $"Dummy hits: {runner.State.Dummy.TimesHit}\n" +
+                $"Tick: {runner.State.Tick}   (F1 hides this, F2 hides hitboxes)";
 
-            GUI.Label(new Rect(12, 12, 600, 220), text, style);
+            GUI.Label(new Rect(12, 12, 700, 300), text, style);
+        }
+
+        // "Light attack: frame 5 / 18 (HITBOX OUT)" while attacking.
+        private string AttackLine(FighterState p)
+        {
+            AttackConfig attack = runner.PlayerConfig?.LightAttack;
+            if (p.Action != FighterAction.LightAttack || attack == null) return "Light attack: -";
+
+            string phase = attack.IsActiveOn(p.ActionTick) ? "HITBOX OUT"
+                : (p.ActionTick < attack.StartupTicks ? "startup" : "recovery");
+            return $"Light attack: frame {p.ActionTick + 1} / {attack.TotalTicks} ({phase}){(p.AttackHasHit ? "  HIT" : "")}";
         }
 
         // Sliding backward while still dashing forward.

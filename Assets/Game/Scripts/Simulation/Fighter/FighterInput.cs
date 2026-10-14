@@ -10,6 +10,7 @@ namespace DreamsOfEverus.Simulation
         public bool HeldDown;         // Stick held down far enough to crouch
         public bool JumpHeld;
         public bool JumpPressed;      // Jump went down this tick
+        public bool AttackPressed;    // Attack went down this tick
     }
 
     /// <summary>
@@ -30,6 +31,7 @@ namespace DreamsOfEverus.Simulation
                 JumpHeld = input.IsHeld(InputButtons.Jump),
             };
             events.JumpPressed = events.JumpHeld && !previous.IsHeld(InputButtons.Jump);
+            events.AttackPressed = input.IsHeld(InputButtons.Attack) && !previous.IsHeld(InputButtons.Attack);
 
             // Each check uses how long the stick had been pushed that way BEFORE this tick.
             if (IsHardPress(input.MoveX, previous.MoveX, fighter.TicksPushedRight, feel)) events.HardPressX = 1;

@@ -80,6 +80,10 @@ namespace DreamsOfEverus.Game
         [Tooltip("How quickly sideways air speed fades with the stick centered, in units per second, per second.")]
         [Min(0f)] public float airFriction = 6f;
 
+        [Header("Attacks")]
+        [Tooltip("The attack on Square (Normal attacks).")]
+        public AttackData lightAttack;
+
         public FighterConfig ToFighterConfig()
         {
             var config = new FighterConfig();
@@ -119,6 +123,9 @@ namespace DreamsOfEverus.Game
             config.AirSpeed = PerTick(airSpeed);
             config.AirAcceleration = PerTickSquared(airAcceleration);
             config.AirFriction = PerTickSquared(airFriction);
+
+            if (lightAttack == null) config.LightAttack = null;
+            else lightAttack.ApplyTo(config.LightAttack ??= new AttackConfig());
         }
 
         // Units per second -> units per tick.

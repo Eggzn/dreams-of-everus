@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 
 namespace DreamsOfEverus.EditorTools
 {
@@ -20,6 +21,7 @@ namespace DreamsOfEverus.EditorTools
         private const string ScenePath = "Assets/Game/Scenes/MovementSandbox.unity";
         private const string CharacterDataPath = "Assets/Game/Data/BunCharacterData.asset";
         private const string InputFeelPath = "Assets/Game/Data/InputFeel.asset";
+        private const string LightAttackPath = "Assets/Game/Data/BunLightAttack.asset";
         private const string ControlsPath = "Assets/Game/Input/GameplayControls.inputactions";
         private const string MaterialFolder = "Assets/Game/Art/Graybox";
 
@@ -52,12 +54,20 @@ namespace DreamsOfEverus.EditorTools
 
             CharacterData bunData = LoadOrCreateAsset<CharacterData>(CharacterDataPath);
             InputFeelData inputFeel = LoadOrCreateAsset<InputFeelData>(InputFeelPath);
+            AttackData bunLightAttack = LoadOrCreateAsset<AttackData>(LightAttackPath);
+            if (bunData.lightAttack == null)
+            {
+                bunData.lightAttack = bunLightAttack;
+                EditorUtility.SetDirty(bunData);
+            }
             var controls = AssetDatabase.LoadAssetAtPath<InputActionAsset>(ControlsPath);
 
             Material solid = LoadOrCreateMaterial("Graybox_Solid", new Color(0.55f, 0.55f, 0.58f));
             Material passThrough = LoadOrCreateMaterial("Graybox_PassThrough", new Color(0.35f, 0.6f, 0.9f));
             Material fallZone = LoadOrCreateMaterial("Graybox_FallZone", new Color(0.6f, 0.12f, 0.12f));
             Material bunMaterial = LoadOrCreateMaterial("Placeholder_Bun", new Color(1f, 0.72f, 0.3f));
+            Material dummyMaterial = LoadOrCreateMaterial("Placeholder_Dummy", new Color(0.85f, 0.85f, 0.8f));
+            Material hitboxMaterial = LoadOrCreateSeeThroughMaterial("Debug_Hitbox", new Color(1f, 0.1f, 0.1f, 0.45f));
 
             if (controls == null) Debug.LogError($"Movement Sandbox: controls not found at {ControlsPath}");
 
@@ -117,6 +127,26 @@ namespace DreamsOfEverus.EditorTools
             SetField(view, "body", body.transform);
             SetField(view, "nose", nose.transform);
 
+            // ----- Training dummy (stands to Bun's right, within a few steps) -----
+            var dummy = new GameObject("Training Dummy", typeof(TrainingDummy), typeof(TrainingDummyView));
+            dummy.transform.position = new Vector3(-3f, 0f, 0f);
+            var dummyData = dummy.GetComponent<TrainingDummy>();
+
+            GameObject dummyBody = CreateVisualPrimitive(PrimitiveType.Cube, "Body (Placeholder)", dummy.transform, dummyMaterial);
+            dummyBody.transform.localScale = new Vector3(dummyData.hurtboxWidth, dummyData.hurtboxHeight, 0.6f);
+            dummyBody.transform.localPosition = new Vector3(0f, dummyData.hurtboxHeight * 0.5f, 0f);
+
+            var dummyView = dummy.GetComponent<TrainingDummyView>();
+            SetField(dummyView, "runner", runner);
+            SetField(dummyView, "body", dummyBody.transform);
+            SetField(dummyView, "bodyRenderer", dummyBody.GetComponent<Renderer>());
+
+            // ----- Hitbox display (red, see-through, only while a hitbox is out) -----
+            var hitboxDisplay = new GameObject("Hitbox Display", typeof(HitboxView));
+            GameObject hitboxBox = CreateVisualPrimitive(PrimitiveType.Cube, "Hitbox", hitboxDisplay.transform, hitboxMaterial);
+            SetField(hitboxDisplay.GetComponent<HitboxView>(), "runner", runner);
+            SetField(hitboxDisplay.GetComponent<HitboxView>(), "box", hitboxBox.GetComponent<Renderer>());
+
             // ----- Camera: fixed overview for now; the follow camera comes in a later step -----
             GameObject cameraObject = GameObject.FindWithTag("MainCamera");
             if (cameraObject != null)
@@ -175,6 +205,27 @@ namespace DreamsOfEverus.EditorTools
             asset = ScriptableObject.CreateInstance<T>();
             AssetDatabase.CreateAsset(asset, path);
             return asset;
+        }
+
+        /// <summary>An unlit, see-through material (URP Unlit set to Transparent), for debug boxes like hitboxes.</summary>
+        private static Material LoadOrCreateSeeThroughMaterial(string name, Color color)
+        {
+            string path = $"{MaterialFolder}/{name}.mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material != null) return material;
+
+            material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+            material.SetColor("_BaseColor", color);
+            material.SetFloat("_Surface", 1f); // Transparent
+            material.SetFloat("_Blend", 0f);   // Alpha blending
+            material.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+            material.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_ZWrite", 0f);
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.renderQueue = (int)RenderQueue.Transparent;
+            AssetDatabase.CreateAsset(material, path);
+            return material;
         }
 
         private static Material LoadOrCreateMaterial(string name, Color color)

@@ -14,4 +14,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: DreamsOfEverus.Game::DreamsOfEverus.Game.CharacterData
   bodyWidth: 0.8
   bodyHeight: 1.8
+  walkSpeed: 4
+  groundAcceleration: 60
+  traction: 40
+  dashSpeed: 11
+  trotDistance: 2.2
+  runSpeed: 9
+  runTurnaroundFrames: 12
+  moonwalkAcceleration: 300
+  crouchHeight: 1
   canCrawl: 1
+  crawlSpeed: 2.5
+  jumpSquatFrames: 3
+  fullHopHeight: 4
+  shortHopHeight: 1.8
+  airJumpHeight: 3.5
+  airJumps: 1
+  maxJumpMomentum: 11
+  gravity: 70
+  maxFallSpeed: 18
+  fastFallSpeed: 27
+  airSpeed: 7
+  airAcceleration: 40
+  airFriction: 6
+  lightAttack: {fileID: 11400000, guid: 15e45a24418ddc4488b123b93911905d, type: 2}

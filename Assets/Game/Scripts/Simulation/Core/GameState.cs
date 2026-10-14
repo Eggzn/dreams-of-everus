@@ -20,6 +20,7 @@ namespace DreamsOfEverus.Simulation
         Airborne,      // In the air (jumping, falling, or after walking off a ledge)
         Crouch,        // Holding Down on the ground: shorter body
         Crawl,         // Crouching and moving (only characters that can crawl)
+        LightAttack,   // The Square attack: startup, active (hitbox out), recovery
     }
 
     /// <summary>
@@ -41,6 +42,7 @@ namespace DreamsOfEverus.Simulation
         public byte AirJumpsUsed;         // Reset on landing
         public bool IsFastFalling;        // Set by a hard press of Down while falling; cleared on landing or air jump
         public bool ShortHopQueued;       // Jump was released during jump squat, so this jump will be a short hop
+        public bool AttackHasHit;         // The current attack already hit, so it can't hit again
 
         // Input history, used to spot hard presses. Part of the state so rollback replays them exactly.
         public InputFrame PreviousInput;  // Last tick's input
@@ -52,6 +54,15 @@ namespace DreamsOfEverus.Simulation
         public bool IsLow => Action == FighterAction.Crouch || Action == FighterAction.Crawl;
     }
 
+    /// <summary>The training dummy: stands still and reacts when hit. No damage or knockback yet.</summary>
+    public struct DummyState
+    {
+        public bool Exists;
+        public FixedVector2 Position;     // Feet position
+        public int HitReactTicksLeft;     // Counts down after a hit; the dummy flashes and shakes while above 0
+        public int TimesHit;              // Running total, shown on the debug readout
+    }
+
     /// <summary>
     /// A full snapshot of gameplay at one tick. Plain data, no Unity objects.
     /// Saving a copy of this and restoring it later is exactly what rollback needs.
@@ -60,11 +71,13 @@ namespace DreamsOfEverus.Simulation
     {
         public int Tick;
         public FighterState Player;
+        public DummyState Dummy;
 
         public void CopyFrom(GameState other)
         {
             Tick = other.Tick;
             Player = other.Player;
+            Dummy = other.Dummy;
         }
 
         public GameState Clone()
@@ -76,7 +89,7 @@ namespace DreamsOfEverus.Simulation
 
         public bool SameAs(GameState other)
         {
-            return Tick == other.Tick && Player.Equals(other.Player);
+            return Tick == other.Tick && Player.Equals(other.Player) && Dummy.Equals(other.Dummy);
         }
     }
 }
