@@ -47,7 +47,10 @@ namespace DreamsOfEverus.Simulation
             // Under a low ceiling the fighter has to stay crouched: no standing up, no jumping.
             bool roomToStand = KinematicMover.HasRoomToStand(fighter, config, level);
 
-            // Jumping and dropping through work from any ground action except jump squat itself.
+            // Jumping works from any ground action except jump squat itself.
+            // Dropping through and crouching don't work during the trot: rolling the stick through Down
+            // mid-dash is how you moonwalk, so Down is ignored there.
+            bool trotting = fighter.Action == FighterAction.Dash;
             if (fighter.Action != FighterAction.JumpSquat)
             {
                 if (input.JumpPressed && roomToStand)
@@ -55,12 +58,12 @@ namespace DreamsOfEverus.Simulation
                     SetAction(ref fighter, FighterAction.JumpSquat);
                     fighter.ShortHopQueued = false;
                 }
-                else if (input.HardPressDown && KinematicMover.TryDropThrough(ref fighter))
+                else if (!trotting && input.HardPressDown && KinematicMover.TryDropThrough(ref fighter))
                 {
                     SetAction(ref fighter, FighterAction.Airborne);
                     return;
                 }
-                else if (input.HeldDown && !fighter.IsLow)
+                else if (!trotting && input.HeldDown && !fighter.IsLow)
                 {
                     SetAction(ref fighter, FighterAction.Crouch);
                 }
@@ -149,7 +152,9 @@ namespace DreamsOfEverus.Simulation
 
             if (input.HeldDirectionX == fighter.Facing)
             {
-                fighter.Velocity.X = config.DashSpeed * fighter.Facing; // holding forward: full dash speed
+                // Holding forward: back up to full dash speed. Not instant, so steering back to forward
+                // after a moonwalk slides around a little instead of snapping.
+                fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, config.DashSpeed * fighter.Facing, config.GroundAcceleration);
             }
             else if (input.HeldDirectionX == -fighter.Facing)
             {

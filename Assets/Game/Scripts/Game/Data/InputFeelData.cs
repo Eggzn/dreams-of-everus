@@ -14,11 +14,11 @@ namespace DreamsOfEverus.Game
         [Tooltip("Stick values smaller than this (out of 100) count as centered.")]
         [Range(0, 99)] public int stickDeadzone = 25;
         [Tooltip("How far (out of 100) the stick must go to count as a press.")]
-        [Range(1, 100)] public int pressThreshold = 70;
+        [Range(1, 100)] public int pressThreshold = 80;
 
         [Header("Hard press (PLACEHOLDER)")]
         [Tooltip("A press counts as 'hard', like a smash input (dash, dash dance, drop-through, fast-fall), if the stick gets from not pushed to the press threshold within this many frames. Easing it over slower is just a tilt.")]
-        [Min(1)] public int hardPressWindowFrames = 3;
+        [Min(1)] public int hardPressWindowFrames = 2;
 
         [Header("Keyboard (PLACEHOLDER)")]
         [Tooltip("While the walk key (Shift) is held, keyboard movement only tilts this far (out of 100). Keep it below the press threshold so it walks instead of dashing. Also how keyboard players moonwalk.")]

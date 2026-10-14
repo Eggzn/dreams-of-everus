@@ -116,6 +116,57 @@ namespace DreamsOfEverus.Tests
         }
 
         [Test]
+        public void Moonwalk_HalfRollThroughDown_SlidesBackwardFacingForward()
+        {
+            HardPress(1);
+            // Roll the stick around the bottom edge: down-forward, down, down-back (held a moment), back.
+            Hold(In(71, -71));
+            Hold(In(0, -100));
+            Hold(In(-71, -71), 2);
+            Hold(In(-100, 0), 3);
+
+            Assert.AreEqual(FighterAction.Dash, Player.Action); // no crouch, no dash dance
+            Assert.AreEqual(1, Player.Facing);
+            Assert.Less(Player.Velocity.X.Raw, 0);
+        }
+
+        [Test]
+        public void FastRollBack_IsStillADashDance()
+        {
+            HardPress(1);
+            Hold(In(71, -71));
+            Hold(In(0, -100));
+            Hold(In(-71, -71)); // only one tick on the diagonal: too fast to be a tilt
+            Hold(In(-100, 0));
+
+            Assert.AreEqual(-1, Player.Facing);
+        }
+
+        [Test]
+        public void HoldingDownDuringTrot_DoesNotCrouch()
+        {
+            HardPress(1);
+            Hold(In(100, -100), 3);
+            Hold(In(0, -100), 3);
+
+            Assert.AreEqual(FighterAction.Dash, Player.Action);
+        }
+
+        [Test]
+        public void HardDownDuringTrot_DoesNotDropThrough()
+        {
+            level.Add(Box(-50, -1, 50, 0), LevelBlockKind.PassThrough);
+            level.Blocks.RemoveAt(0); // only the pass-through floor remains
+            KinematicMover.UpdateGround(ref state.Player, fighter, level);
+
+            HardPress(1);
+            Hold(In(0, -100), 3);
+
+            Assert.AreEqual(F(0), Player.Position.Y);
+            Assert.IsTrue(Player.IsGrounded);
+        }
+
+        [Test]
         public void Moonwalk_ZeroStrength_CannotMoonwalk()
         {
             fighter.MoonwalkAcceleration = Fixed.Zero;

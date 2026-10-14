@@ -49,8 +49,8 @@ namespace DreamsOfEverus.Tests
         public static InputFeelConfig Feel() => new InputFeelConfig
         {
             StickDeadzone = 25,
-            PressThreshold = 70,
-            HardPressWindowTicks = 3,
+            PressThreshold = 80,
+            HardPressWindowTicks = 2,
             CrouchThreshold = 50,
         };
 

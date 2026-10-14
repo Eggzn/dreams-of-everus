@@ -13,6 +13,5 @@ MonoBehaviour:
   m_Name: InputFeel
   m_EditorClassIdentifier: DreamsOfEverus.Game::DreamsOfEverus.Game.InputFeelData
   stickDeadzone: 25
-  pressThreshold: 70
-  hardPressWindowFrames: 3
-  doubleTapWindowFrames: 12
+  pressThreshold: 80
+  hardPressWindowFrames: 2
