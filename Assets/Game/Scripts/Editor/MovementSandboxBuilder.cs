@@ -19,6 +19,7 @@ namespace DreamsOfEverus.EditorTools
     {
         private const string ScenePath = "Assets/Game/Scenes/MovementSandbox.unity";
         private const string CharacterDataPath = "Assets/Game/Data/BunCharacterData.asset";
+        private const string InputFeelPath = "Assets/Game/Data/InputFeel.asset";
         private const string ControlsPath = "Assets/Game/Input/GameplayControls.inputactions";
         private const string MaterialFolder = "Assets/Game/Art/Graybox";
 
@@ -49,7 +50,8 @@ namespace DreamsOfEverus.EditorTools
             EnsureFolder("Assets/Game/Data");
             EnsureFolder(MaterialFolder);
 
-            CharacterData bunData = LoadOrCreateCharacterData();
+            CharacterData bunData = LoadOrCreateAsset<CharacterData>(CharacterDataPath);
+            InputFeelData inputFeel = LoadOrCreateAsset<InputFeelData>(InputFeelPath);
             var controls = AssetDatabase.LoadAssetAtPath<InputActionAsset>(ControlsPath);
 
             Material solid = LoadOrCreateMaterial("Graybox_Solid", new Color(0.55f, 0.55f, 0.58f));
@@ -81,25 +83,33 @@ namespace DreamsOfEverus.EditorTools
             respawn.transform.position = new Vector3(-6f, 0f, 0f);
 
             // ----- Simulation -----
-            var simulationObject = new GameObject("Simulation", typeof(SimulationRunner), typeof(PlayerInputReader));
+            var simulationObject = new GameObject("Simulation", typeof(SimulationRunner), typeof(PlayerInputReader), typeof(DebugHud));
             var runner = simulationObject.GetComponent<SimulationRunner>();
             SetField(runner, "playerCharacter", bunData);
+            SetField(runner, "inputFeel", inputFeel);
+            SetField(simulationObject.GetComponent<DebugHud>(), "runner", runner);
             SetField(simulationObject.GetComponent<PlayerInputReader>(), "controls", controls);
 
             // ----- Bun (placeholder capsule) -----
             var bun = new GameObject("Bun", typeof(FighterView));
             bun.transform.position = respawn.transform.position;
 
-            GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            body.name = "Body (Placeholder)";
-            Object.DestroyImmediate(body.GetComponent<Collider>()); // no Unity physics in gameplay
-            body.GetComponent<Renderer>().sharedMaterial = bunMaterial;
-            body.transform.SetParent(bun.transform, false);
+            // Visual turns to show facing; body and nose turn with it.
+            var visual = new GameObject("Visual").transform;
+            visual.SetParent(bun.transform, false);
+
+            GameObject body = CreateVisualPrimitive(PrimitiveType.Capsule, "Body (Placeholder)", visual, bunMaterial);
             body.transform.localScale = new Vector3(bunData.bodyWidth, bunData.bodyHeight * 0.5f, bunData.bodyWidth);
             body.transform.localPosition = new Vector3(0f, bunData.bodyHeight * 0.5f, 0f);
 
+            // A small block on the front of the face, so you can see which way Bun is facing.
+            GameObject nose = CreateVisualPrimitive(PrimitiveType.Cube, "Nose (Facing)", visual, solid);
+            nose.transform.localScale = new Vector3(0.3f, 0.2f, 0.2f);
+            nose.transform.localPosition = new Vector3(bunData.bodyWidth * 0.5f, bunData.bodyHeight * 0.75f, 0f);
+
             var view = bun.GetComponent<FighterView>();
             SetField(view, "runner", runner);
+            SetField(view, "visualRoot", visual);
             SetField(view, "body", body.transform);
 
             // ----- Camera: fixed overview for now; the follow camera comes in a later step -----
@@ -141,14 +151,25 @@ namespace DreamsOfEverus.EditorTools
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static CharacterData LoadOrCreateCharacterData()
+        private static GameObject CreateVisualPrimitive(PrimitiveType type, string name, Transform parent, Material material)
         {
-            var data = AssetDatabase.LoadAssetAtPath<CharacterData>(CharacterDataPath);
-            if (data != null) return data;
+            GameObject shape = GameObject.CreatePrimitive(type);
+            shape.name = name;
+            Object.DestroyImmediate(shape.GetComponent<Collider>()); // no Unity physics in gameplay
+            shape.GetComponent<Renderer>().sharedMaterial = material;
+            shape.transform.SetParent(parent, false);
+            return shape;
+        }
 
-            data = ScriptableObject.CreateInstance<CharacterData>();
-            AssetDatabase.CreateAsset(data, CharacterDataPath);
-            return data;
+        /// <summary>Loads a data asset, or creates it with default values if it doesn't exist. Existing values are kept.</summary>
+        private static T LoadOrCreateAsset<T>(string path) where T : ScriptableObject
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<T>(path);
+            if (asset != null) return asset;
+
+            asset = ScriptableObject.CreateInstance<T>();
+            AssetDatabase.CreateAsset(asset, path);
+            return asset;
         }
 
         private static Material LoadOrCreateMaterial(string name, Color color)

@@ -4,12 +4,16 @@ using UnityEngine;
 namespace DreamsOfEverus.Game
 {
     /// <summary>
-    /// Shows the player where the simulation says they are. Reads the state, never changes it.
-    /// Smooths between the last two ticks so movement looks fluid on screens faster than 60 Hz.
+    /// Shows the player where the simulation says they are, and which way they face.
+    /// Reads the state, never changes it. Smooths between the last two ticks so movement
+    /// looks fluid on screens faster than 60 Hz.
     /// </summary>
     public class FighterView : MonoBehaviour
     {
         [SerializeField] private SimulationRunner runner;
+
+        [Tooltip("Turns to show facing. The body and nose are its children.")]
+        [SerializeField] private Transform visualRoot;
 
         [Tooltip("The placeholder body (a capsule). Sized to match the character's collision box.")]
         [SerializeField] private Transform body;
@@ -31,8 +35,21 @@ namespace DreamsOfEverus.Game
             Vector2 previous = ToVector(runner.PreviousState.Player.Position);
             Vector2 current = ToVector(runner.State.Player.Position);
             Vector2 shown = Vector2.Lerp(previous, current, runner.InterpolationAlpha);
-
             transform.position = new Vector3(shown.x, shown.y, 0f);
+
+            if (visualRoot != null) visualRoot.localRotation = Quaternion.Euler(0f, FacingAngle(runner.State.Player), 0f);
+        }
+
+        // 0 degrees faces right, 180 faces left. During a run turnaround the body swings around slowly.
+        private float FacingAngle(FighterState player)
+        {
+            float angle = player.Facing > 0 ? 0f : 180f;
+            if (player.Action == FighterAction.RunTurnaround && runner.PlayerConfig != null)
+            {
+                float progress = Mathf.Clamp01((float)player.ActionTick / runner.PlayerConfig.RunTurnaroundTicks);
+                angle += 180f * progress;
+            }
+            return angle;
         }
 
         private static Vector2 ToVector(FixedVector2 v) => new Vector2(v.X.ToFloat(), v.Y.ToFloat());

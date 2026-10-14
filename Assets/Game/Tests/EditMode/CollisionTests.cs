@@ -186,11 +186,10 @@ namespace DreamsOfEverus.Tests
         {
             level.Add(Box(-20, -10, 20, -6), LevelBlockKind.FallZone);
             level.RespawnPoint = V(-3, 5);
-            var sim = new GameSimulation(level, fighter);
+            var sim = new GameSimulation(level, fighter, Feel());
             GameState state = sim.CreateInitialState();
 
-            state.Player.Position = V(0, -4);
-            state.Player.Velocity = V(0, -3); // falls into the zone this tick
+            state.Player.Position = V(0, -7); // inside the fall zone
             sim.Step(state, default);
 
             Assert.AreEqual(V(-3, 5), state.Player.Position);
@@ -203,7 +202,7 @@ namespace DreamsOfEverus.Tests
             level.Add(Box(-10, -1, 10, 0), LevelBlockKind.Solid);
             level.RespawnPoint = V(2, 0);
 
-            GameState state = new GameSimulation(level, fighter).CreateInitialState();
+            GameState state = new GameSimulation(level, fighter, Feel()).CreateInitialState();
 
             Assert.AreEqual(V(2, 0), state.Player.Position);
             Assert.AreEqual(GroundType.Solid, state.Player.Ground);

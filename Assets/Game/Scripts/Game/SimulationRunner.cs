@@ -19,10 +19,14 @@ namespace DreamsOfEverus.Game
         [Tooltip("The player character's data asset (body size, movement values...).")]
         [SerializeField] private CharacterData playerCharacter;
 
+        [Tooltip("How stick and button input is read (deadzone, double-tap timing...).")]
+        [SerializeField] private InputFeelData inputFeel;
+
         [Tooltip("If the game falls behind (e.g. a lag spike), at most this many ticks run in one frame.")]
         [SerializeField] private int maxTicksPerFrame = 5;
 
         public CharacterData PlayerCharacter => playerCharacter;
+        public FighterConfig PlayerConfig { get; private set; }
         public GameState State { get; private set; }
         public GameState PreviousState { get; private set; }
 
@@ -32,20 +36,24 @@ namespace DreamsOfEverus.Game
         private const double TickDuration = 1.0 / GameSimulation.TicksPerSecond;
 
         private GameSimulation simulation;
+        private InputFeelConfig inputFeelConfig;
         private IInputSource inputSource;
         private double accumulatedTime;
 
         private void Awake()
         {
-            if (playerCharacter == null)
+            if (playerCharacter == null || inputFeel == null)
             {
-                Debug.LogError("SimulationRunner: no Player Character data assigned.", this);
+                Debug.LogError("SimulationRunner: assign both Player Character and Input Feel data.", this);
                 enabled = false;
                 return;
             }
 
+            PlayerConfig = playerCharacter.ToFighterConfig();
+            inputFeelConfig = inputFeel.ToConfig();
+
             LevelGeometry level = LevelBaker.BakeScene();
-            simulation = new GameSimulation(level, playerCharacter.ToFighterConfig());
+            simulation = new GameSimulation(level, PlayerConfig, inputFeelConfig);
 
             State = simulation.CreateInitialState();
             PreviousState = State.Clone();
@@ -54,6 +62,13 @@ namespace DreamsOfEverus.Game
 
         private void Update()
         {
+#if UNITY_EDITOR
+            // Live tuning: pick up any values changed in the Inspector during Play.
+            // (Editor only: in a real match both players must use identical values.)
+            playerCharacter.ApplyTo(PlayerConfig);
+            inputFeel.ApplyTo(inputFeelConfig);
+#endif
+
             // Real time only decides HOW MANY ticks to run. The ticks themselves never see it.
             accumulatedTime += Time.unscaledDeltaTime;
 

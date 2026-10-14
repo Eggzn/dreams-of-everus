@@ -10,17 +10,21 @@ namespace DreamsOfEverus.Simulation
 
         private readonly LevelGeometry level;
         private readonly FighterConfig playerConfig;
+        private readonly InputFeelConfig inputFeel;
 
-        public GameSimulation(LevelGeometry level, FighterConfig playerConfig)
+        /// <param name="playerConfig">Kept by reference, so changing its values (live tuning) takes effect next tick.</param>
+        public GameSimulation(LevelGeometry level, FighterConfig playerConfig, InputFeelConfig inputFeel)
         {
             this.level = level;
             this.playerConfig = playerConfig;
+            this.inputFeel = inputFeel;
         }
 
-        /// <summary>The state at the very start of play: the player standing at the respawn point.</summary>
+        /// <summary>The state at the very start of play: the player standing at the respawn point, facing right.</summary>
         public GameState CreateInitialState()
         {
             var state = new GameState();
+            state.Player.Facing = 1;
             PlaceAtRespawn(ref state.Player);
             return state;
         }
@@ -29,9 +33,10 @@ namespace DreamsOfEverus.Simulation
         {
             ref FighterState player = ref state.Player;
 
-            // Running, jumping and fast-fall will set the player's velocity here (Milestone 1, step 5).
-
+            InputEvents events = FighterInput.Read(ref player, input, inputFeel);
+            FighterMovement.UpdateBeforeMove(ref player, events, playerConfig);
             KinematicMover.Move(ref player, playerConfig, level);
+            FighterMovement.UpdateAfterMove(ref player);
 
             if (level.TouchesFallZone(KinematicMover.BodyBox(player.Position, playerConfig)))
             {
@@ -45,8 +50,8 @@ namespace DreamsOfEverus.Simulation
         private void PlaceAtRespawn(ref FighterState fighter)
         {
             fighter.Position = level.RespawnPoint;
-            fighter.Velocity = FixedVector2.Zero;
             KinematicMover.UpdateGround(ref fighter, playerConfig, level);
+            FighterMovement.ResetAfterTeleport(ref fighter);
         }
     }
 }
