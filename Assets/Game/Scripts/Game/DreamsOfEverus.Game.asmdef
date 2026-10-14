@@ -2,7 +2,8 @@
     "name": "DreamsOfEverus.Game",
     "rootNamespace": "DreamsOfEverus.Game",
     "references": [
-        "DreamsOfEverus.Simulation"
+        "DreamsOfEverus.Simulation",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
