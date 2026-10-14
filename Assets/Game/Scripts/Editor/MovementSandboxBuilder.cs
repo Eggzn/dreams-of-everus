@@ -97,11 +97,12 @@ namespace DreamsOfEverus.EditorTools
             respawn.transform.position = new Vector3(-6f, 0f, 0f);
 
             // ----- Simulation -----
-            var simulationObject = new GameObject("Simulation", typeof(SimulationRunner), typeof(PlayerInputReader), typeof(DebugHud));
+            var simulationObject = new GameObject("Simulation", typeof(SimulationRunner), typeof(PlayerInputReader), typeof(DebugHud), typeof(SnapshotDebugger));
             var runner = simulationObject.GetComponent<SimulationRunner>();
             SetField(runner, "playerCharacter", bunData);
             SetField(runner, "inputFeel", inputFeel);
             SetField(simulationObject.GetComponent<DebugHud>(), "runner", runner);
+            SetField(simulationObject.GetComponent<SnapshotDebugger>(), "runner", runner);
             SetField(simulationObject.GetComponent<PlayerInputReader>(), "controls", controls);
             SetField(simulationObject.GetComponent<PlayerInputReader>(), "inputFeel", inputFeel);
 

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using DreamsOfEverus.Simulation;
 using UnityEngine;
 
@@ -33,6 +35,9 @@ namespace DreamsOfEverus.Game
 
         /// <summary>0..1: how far real time is between PreviousState and State. For visuals only.</summary>
         public float InterpolationAlpha { get; private set; }
+
+        /// <summary>Called after every tick with the input it used. The snapshot debugger records these.</summary>
+        public event Action<InputFrame> TickRan;
 
         private const double TickDuration = 1.0 / GameSimulation.TicksPerSecond;
 
@@ -81,6 +86,7 @@ namespace DreamsOfEverus.Game
                 InputFrame input = inputSource != null ? inputSource.ReadInput() : default;
                 PreviousState.CopyFrom(State);
                 simulation.Step(State, input);
+                TickRan?.Invoke(input);
 
                 accumulatedTime -= TickDuration;
                 ticksThisFrame++;
@@ -93,6 +99,20 @@ namespace DreamsOfEverus.Game
             }
 
             InterpolationAlpha = (float)(accumulatedTime / TickDuration);
+        }
+
+        /// <summary>Jumps the game back to a saved snapshot (rollback's "rewind").</summary>
+        public void RestoreState(GameState snapshot)
+        {
+            State.CopyFrom(snapshot);
+            PreviousState.CopyFrom(snapshot); // no smoothing between the old and restored positions
+            accumulatedTime = 0;
+        }
+
+        /// <summary>Runs the given inputs from a snapshot, off to the side, without touching the live game.</summary>
+        public GameState Replay(GameState snapshot, IReadOnlyList<InputFrame> inputs)
+        {
+            return SnapshotReplay.Replay(simulation, snapshot, inputs);
         }
     }
 }

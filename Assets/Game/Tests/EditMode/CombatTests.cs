@@ -158,6 +158,24 @@ namespace DreamsOfEverus.Tests
         }
 
         [Test]
+        public void SnapshotReplay_MatchesLiveGame()
+        {
+            GameState snapshot = state.Clone();
+            var inputs = new System.Collections.Generic.List<InputFrame>();
+            for (int t = 0; t < 120; t++)
+            {
+                InputFrame input = In(t % 30 < 15 ? 100 : -40, t % 50 == 0 ? -100 : 0, jump: t % 40 < 3, attack: t % 25 == 0);
+                inputs.Add(input);
+                sim.Step(state, input);
+            }
+
+            GameState replayed = SnapshotReplay.Replay(sim, snapshot, inputs);
+
+            Assert.IsTrue(replayed.SameAs(state));
+            Assert.AreEqual(0, snapshot.Tick, "the snapshot itself is left untouched");
+        }
+
+        [Test]
         public void RestoreSnapshot_ReplaysHitsExactly()
         {
             GameState start = state.Clone();
