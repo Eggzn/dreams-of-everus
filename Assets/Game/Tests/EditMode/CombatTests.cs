@@ -71,6 +71,30 @@ namespace DreamsOfEverus.Tests
         }
 
         [Test]
+        public void ShownHitbox_MatchesTheTicksThatCouldHit()
+        {
+            // After each tick, the visuals ask "was a hitbox out during the tick that just ran?"
+            int ticksShown = 0;
+            for (int tick = 0; tick < Attack.TotalTicks; tick++)
+            {
+                Hold(AttackButton);
+                bool shown = CombatSystem.TryGetHitboxOfLastTick(Player, fighter, out _);
+                bool shouldShow = tick >= Attack.StartupTicks && tick < Attack.StartupTicks + Attack.ActiveTicks;
+                Assert.AreEqual(shouldShow, shown, $"tick {tick}");
+                if (shown) ticksShown++;
+            }
+            Assert.AreEqual(Attack.ActiveTicks, ticksShown);
+        }
+
+        [Test]
+        public void ShownHitbox_IsOutOnTheTickTheDummyGetsHit()
+        {
+            Hold(AttackButton, Attack.StartupTicks + 1);
+            Assert.AreEqual(1, Dummy.TimesHit);
+            Assert.IsTrue(CombatSystem.TryGetHitboxOfLastTick(Player, fighter, out _));
+        }
+
+        [Test]
         public void OneHitPerAttack()
         {
             Hold(AttackButton, Attack.TotalTicks);

@@ -22,12 +22,12 @@ namespace DreamsOfEverus.Game
         {
             if (box == null) return;
 
+            FixedBox hitbox = default;
             bool show = visible && runner != null && runner.State != null
-                && CombatSystem.TryGetActiveHitbox(runner.State.Player, runner.PlayerConfig, out FixedBox hitbox);
+                && CombatSystem.TryGetHitboxOfLastTick(runner.State.Player, runner.PlayerConfig, out hitbox);
             box.enabled = show;
             if (!show) return;
 
-            CombatSystem.TryGetActiveHitbox(runner.State.Player, runner.PlayerConfig, out hitbox);
             Vector2 min = new Vector2(hitbox.Min.X.ToFloat(), hitbox.Min.Y.ToFloat());
             Vector2 max = new Vector2(hitbox.Max.X.ToFloat(), hitbox.Max.Y.ToFloat());
 

@@ -28,6 +28,17 @@ namespace DreamsOfEverus.Simulation
             return true;
         }
 
+        /// <summary>
+        /// For visuals, read after a tick has finished: the hitbox that was checked during that tick.
+        /// (By then the attack's frame counter has already moved on to the next frame, so this looks one frame back.)
+        /// </summary>
+        public static bool TryGetHitboxOfLastTick(in FighterState attacker, FighterConfig config, out FixedBox hitbox)
+        {
+            FighterState lastTick = attacker;
+            lastTick.ActionTick -= 1;
+            return TryGetActiveHitbox(lastTick, config, out hitbox);
+        }
+
         public static FixedBox DummyHurtbox(in DummyState dummy, TrainingDummyConfig config)
         {
             Fixed halfWidth = config.HurtboxWidth / 2;

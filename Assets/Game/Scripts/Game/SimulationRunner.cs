@@ -21,7 +21,7 @@ namespace DreamsOfEverus.Game
         [Tooltip("The player character's data asset (body size, movement values...).")]
         [SerializeField] private CharacterData playerCharacter;
 
-        [Tooltip("How stick and button input is read (deadzone, double-tap timing...).")]
+        [Tooltip("How stick and button input is read (deadzone, hard press timing...).")]
         [SerializeField] private InputFeelData inputFeel;
 
         [Tooltip("If the game falls behind (e.g. a lag spike), at most this many ticks run in one frame.")]

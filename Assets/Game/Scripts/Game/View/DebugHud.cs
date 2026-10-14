@@ -45,9 +45,12 @@ namespace DreamsOfEverus.Game
             AttackConfig attack = runner.PlayerConfig?.LightAttack;
             if (p.Action != FighterAction.LightAttack || attack == null) return "Light attack: -";
 
-            string phase = attack.IsActiveOn(p.ActionTick) ? "HITBOX OUT"
-                : (p.ActionTick < attack.StartupTicks ? "startup" : "recovery");
-            return $"Light attack: frame {p.ActionTick + 1} / {attack.TotalTicks} ({phase}){(p.AttackHasHit ? "  HIT" : "")}";
+            // After a tick, ActionTick has already moved on, so the frame that just played is ActionTick - 1
+            // (shown counting from 1, like frame data: "frame 1" is the first frame).
+            int framePlayed = p.ActionTick - 1;
+            string phase = attack.IsActiveOn(framePlayed) ? "HITBOX OUT"
+                : (framePlayed < attack.StartupTicks ? "startup" : "recovery");
+            return $"Light attack: frame {framePlayed + 1} / {attack.TotalTicks} ({phase}){(p.AttackHasHit ? "  HIT" : "")}";
         }
 
         // Sliding backward while still dashing forward.
