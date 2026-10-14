@@ -1,0 +1,16 @@
+{
+    "name": "DreamsOfEverus.Game",
+    "rootNamespace": "DreamsOfEverus.Game",
+    "references": [
+        "DreamsOfEverus.Simulation"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
