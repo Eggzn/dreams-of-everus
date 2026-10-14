@@ -249,7 +249,7 @@ Each milestone proves one thing and is playable when done. Suggested first big t
 
 - Step 0: check the existing Unity project and Git repo, add a Unity ignore file if missing, and connect the repo to GitHub.
 - A graybox room: floor, solid walls, platforms at different heights including pass-through platforms, a fall zone and a fixed respawn point.
-- A placeholder Bun with run, jump, short hop, one air jump and fast-fall.
+- A placeholder Bun with walk, dash (double-tap forward or back), trot, dash dance, run, run turnaround, jump, short hop, one air jump, fast-fall and drop-through. **Trot** is the length of a character's initial dash; one press of the opposite direction during it dashes the other way (dash dance); turning after it, while running, forces the slower run turnaround. All values are per character.
 - A light attack (Square) with a visible hitbox and a standing training dummy that reacts when hit. No damage, Fragility or knockback yet.
 - The rollback-ready foundation: a fixed 60-per-second game step, inputs read once per frame, custom collision, no Unity physics for gameplay, fixed-point math for gameplay numbers.
 - Side-on follow camera; controller and keyboard input through named actions.
@@ -259,7 +259,7 @@ Each milestone proves one thing and is playable when done. Suggested first big t
 
 **Later milestones**
 
-2. Movement refinement: wall jump, ledge grab, dash, spot dodge and air dodge.
+2. Movement refinement: wall jump, ledge grab, spot dodge and air dodge. (Dash moved into Milestone 1, October 2026.)
 3. 3D presentation test: one rigged model running and jumping on the 2D plane.
 4. Combat room: normals, specials, hitboxes, hurtboxes, Fragility, knockback, hitstun and hit-pause.
 5. Defense and gauges: shield, perfect shield, Everus Tap, Dream Gauge, directional dodge.

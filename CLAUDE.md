@@ -9,7 +9,8 @@ The full design lives in `Docs/GameDesign.md`. Read the sections that matter for
 **Milestone 1: Movement Sandbox V0.1.** Only build what is listed here.
 
 - A graybox room: floor, solid walls, platforms at different heights including pass-through platforms, a fall zone, and a fixed respawn point.
-- A placeholder Bun (a capsule is fine) with these moves: run, jump, short hop (from the ground only), one air jump, and fast-fall.
+- A placeholder Bun (a capsule is fine) with these moves: walk, dash (double-tap forward or back), trot, dash dance, run, run turnaround, jump, short hop (from the ground only), one air jump, fast-fall, and dropping through pass-through platforms (hard press of Down).
+  - **Trot** is the length of a character's initial dash. Pressing the opposite direction once during the trot dashes the other way (dash dance). After the trot, the character runs; turning while running plays the slower run turnaround.
 - A light attack on Square, with a visible hitbox, against a standing training dummy that reacts when hit. No damage, Fragility or knockback yet.
 - A side-on perspective follow camera.
 - Controller (PS4/Xbox) and keyboard input through named Input System actions.
