@@ -22,6 +22,7 @@ namespace DreamsOfEverus.EditorTools
         private const string CharacterDataPath = "Assets/Game/Data/BunCharacterData.asset";
         private const string InputFeelPath = "Assets/Game/Data/InputFeel.asset";
         private const string LightAttackPath = "Assets/Game/Data/BunLightAttack.asset";
+        private const string FollowCameraPath = "Assets/Game/Data/FollowCamera.asset";
         private const string ControlsPath = "Assets/Game/Input/GameplayControls.inputactions";
         private const string MaterialFolder = "Assets/Game/Art/Graybox";
 
@@ -147,12 +148,21 @@ namespace DreamsOfEverus.EditorTools
             SetField(hitboxDisplay.GetComponent<HitboxView>(), "runner", runner);
             SetField(hitboxDisplay.GetComponent<HitboxView>(), "box", hitboxBox.GetComponent<Renderer>());
 
-            // ----- Camera: fixed overview for now; the follow camera comes in a later step -----
+            // ----- Camera: side-on perspective, follows Bun -----
             GameObject cameraObject = GameObject.FindWithTag("MainCamera");
             if (cameraObject != null)
             {
-                cameraObject.transform.SetPositionAndRotation(new Vector3(0f, 4f, -24f), Quaternion.identity);
-                cameraObject.GetComponent<Camera>().fieldOfView = 50f;
+                FollowCameraData cameraSettings = LoadOrCreateAsset<FollowCameraData>(FollowCameraPath);
+                var follow = cameraObject.AddComponent<FollowCamera>();
+                SetField(follow, "runner", runner);
+                SetField(follow, "target", bun.transform);
+                SetField(follow, "settings", cameraSettings);
+
+                // Start where the camera will be when play begins, so the Scene and Game views match.
+                cameraObject.transform.SetPositionAndRotation(
+                    FollowCamera.DesiredPosition(bun.transform.position, cameraSettings.lookAheadDistance, cameraSettings),
+                    Quaternion.Euler(cameraSettings.pitch, 0f, 0f));
+                cameraObject.GetComponent<Camera>().fieldOfView = cameraSettings.fieldOfView;
             }
 
             EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene(), ScenePath);
