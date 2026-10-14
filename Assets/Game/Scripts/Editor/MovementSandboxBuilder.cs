@@ -92,6 +92,7 @@ namespace DreamsOfEverus.EditorTools
             SetField(runner, "inputFeel", inputFeel);
             SetField(simulationObject.GetComponent<DebugHud>(), "runner", runner);
             SetField(simulationObject.GetComponent<PlayerInputReader>(), "controls", controls);
+            SetField(simulationObject.GetComponent<PlayerInputReader>(), "inputFeel", inputFeel);
 
             // ----- Bun (placeholder capsule) -----
             var bun = new GameObject("Bun", typeof(FighterView));

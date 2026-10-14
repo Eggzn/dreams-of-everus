@@ -37,6 +37,22 @@ namespace DreamsOfEverus.Tests
         }
 
         [Test]
+        public void WalkKey_LimitsKeyboardToGentleTilt()
+        {
+            Vector2 move = InputFrameBuilder.ApplyWalkKey(new Vector2(1f, -1f), walkHeld: true, walkTiltPercent: 65);
+            InputFrame frame = InputFrameBuilder.Build(move, false, false);
+
+            Assert.AreEqual(65, frame.MoveX);
+            Assert.AreEqual(-65, frame.MoveY); // each axis on its own, so Shift + Down + Right can still crawl
+        }
+
+        [Test]
+        public void WalkKey_NotHeld_LeavesInputAlone()
+        {
+            Assert.AreEqual(new Vector2(1f, 0f), InputFrameBuilder.ApplyWalkKey(new Vector2(1f, 0f), false, 65));
+        }
+
+        [Test]
         public void Latch_KeepsTapThatEndedBetweenTicks()
         {
             var latch = new ButtonLatch();
@@ -67,6 +83,7 @@ namespace DreamsOfEverus.Tests
             AssertHasBinding(map, PlayerInputReader.JumpAction, "<Keyboard>/space");
             AssertHasBinding(map, PlayerInputReader.AttackAction, "<Gamepad>/buttonWest"); // Square
             AssertHasBinding(map, PlayerInputReader.AttackAction, "<Keyboard>/j");
+            AssertHasBinding(map, PlayerInputReader.WalkAction, "<Keyboard>/leftShift");
         }
 
         private static void AssertHasBinding(InputActionMap map, string actionName, string path)

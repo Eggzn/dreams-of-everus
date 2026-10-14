@@ -20,6 +20,10 @@ namespace DreamsOfEverus.Game
         [Tooltip("A press counts as 'hard', like a smash input (dash, dash dance, drop-through, fast-fall), if the stick gets from not pushed to the press threshold within this many frames. Easing it over slower is just a tilt.")]
         [Min(1)] public int hardPressWindowFrames = 3;
 
+        [Header("Keyboard (PLACEHOLDER)")]
+        [Tooltip("While the walk key (Shift) is held, keyboard movement only tilts this far (out of 100). Keep it below the press threshold so it walks instead of dashing. Also how keyboard players moonwalk.")]
+        [Range(1, 100)] public int keyboardWalkTilt = 65;
+
         [Header("Crouch (PLACEHOLDER)")]
         [Tooltip("How far down (out of 100) the stick must be held to crouch.")]
         [Range(1, 100)] public int crouchThreshold = 50;

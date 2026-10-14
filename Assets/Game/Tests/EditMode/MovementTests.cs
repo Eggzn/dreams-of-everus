@@ -102,6 +102,95 @@ namespace DreamsOfEverus.Tests
             Assert.AreNotEqual(-fighter.DashSpeed, Player.Velocity.X);
         }
 
+        // ----- Moonwalk -----
+
+        [Test]
+        public void Moonwalk_GentleTiltBackDuringTrot_SlidesBackwardFacingForward()
+        {
+            HardPress(1);
+            Hold(In(-50), fighter.TrotTicks - 1); // gentle tilt back: never reaches the press threshold
+
+            Assert.AreEqual(FighterAction.Dash, Player.Action);
+            Assert.AreEqual(1, Player.Facing);            // still facing forward
+            Assert.Less(Player.Velocity.X.Raw, 0);         // but moving backward
+        }
+
+        [Test]
+        public void Moonwalk_ZeroStrength_CannotMoonwalk()
+        {
+            fighter.MoonwalkAcceleration = Fixed.Zero;
+            HardPress(1);
+            Hold(In(-50), fighter.TrotTicks - 1);
+
+            Assert.AreEqual(fighter.DashSpeed, Player.Velocity.X);
+        }
+
+        /// <summary>Moonwalks for the whole trot, then lets go until stopped. Returns where the fighter ends up.</summary>
+        private Fixed MoonwalkEndX()
+        {
+            HardPress(1);
+            Hold(In(-100 / 2), fighter.TrotTicks - 1);
+            Hold(In(), 120);
+            return Player.Position.X;
+        }
+
+        [Test]
+        public void Moonwalk_StrongerCharacterGoesFurtherBack()
+        {
+            fighter.MoonwalkAcceleration = F(1, 50);
+            Fixed weak = MoonwalkEndX();
+
+            SetUp();
+            fighter.MoonwalkAcceleration = F(1, 10);
+            Fixed strong = MoonwalkEndX();
+
+            Assert.Less(strong.Raw, weak.Raw);
+        }
+
+        // ----- Traction -----
+
+        [Test]
+        public void LettingGoDuringDash_SlidesOnTraction()
+        {
+            HardPress(1);
+            Hold(In());
+
+            Assert.AreEqual(fighter.DashSpeed - fighter.Traction, Player.Velocity.X);
+        }
+
+        /// <summary>Runs, lets go, and returns how far the fighter slides before stopping.</summary>
+        private Fixed StoppingDistance()
+        {
+            HardPress(1);
+            Hold(In(100), fighter.TrotTicks + 20); // running at full speed
+            Fixed releaseX = Player.Position.X;
+            Hold(In(), 200);
+            return Player.Position.X - releaseX;
+        }
+
+        [Test]
+        public void LowTraction_SlidesFurther()
+        {
+            fighter.Traction = F(1, 20); // grippy
+            Fixed grippy = StoppingDistance();
+
+            SetUp();
+            fighter.Traction = F(1, 100); // slippery
+            Fixed slippery = StoppingDistance();
+
+            Assert.Greater(slippery.Raw, grippy.Raw);
+        }
+
+        [Test]
+        public void FasterThanWalkSpeed_BleedsOffOnTraction()
+        {
+            fighter.Traction = F(1, 100);
+            state.Player.Velocity = V(F(3, 10), F(0)); // e.g. just landed from a dash jump
+            Hold(In(50));
+
+            Assert.AreEqual(F(3, 10) - fighter.Traction, Player.Velocity.X);
+        }
+
         // ----- Momentum -----
 
         /// <summary>Jumps with the stick held right and returns how far right the fighter travels in the air.</summary>

@@ -103,7 +103,7 @@ namespace DreamsOfEverus.Simulation
             if (input.HeldDirectionX == 0)
             {
                 if (fighter.Action != FighterAction.Idle) SetAction(ref fighter, FighterAction.Idle);
-                fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, Fixed.Zero, config.GroundFriction);
+                fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, Fixed.Zero, config.Traction);
                 return;
             }
 
@@ -112,7 +112,7 @@ namespace DreamsOfEverus.Simulation
 
             // Walk speed follows how far the stick is tilted: half tilt = half speed.
             Fixed targetSpeed = config.WalkSpeed * input.StickX / InputFrame.StickMax;
-            fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, targetSpeed, config.GroundAcceleration);
+            fighter.Velocity.X = GroundSteer(fighter.Velocity.X, targetSpeed, input.HeldDirectionX, config);
         }
 
         private static void StartDash(ref FighterState fighter, int direction, FighterConfig config)
@@ -142,12 +142,27 @@ namespace DreamsOfEverus.Simulation
                 else
                 {
                     SetAction(ref fighter, FighterAction.Idle);
-                    fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, Fixed.Zero, config.GroundFriction);
+                    fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, Fixed.Zero, config.Traction);
                 }
                 return;
             }
 
-            fighter.Velocity.X = config.DashSpeed * fighter.Facing;
+            if (input.HeldDirectionX == fighter.Facing)
+            {
+                fighter.Velocity.X = config.DashSpeed * fighter.Facing; // holding forward: full dash speed
+            }
+            else if (input.HeldDirectionX == -fighter.Facing)
+            {
+                // Moonwalk: a gentle tilt back (not a hard press, which would dash dance) pushes the character
+                // backward while they keep facing forward in the dash. How strongly depends on the character.
+                Fixed backwardTarget = config.DashSpeed * input.StickX / InputFrame.StickMax;
+                fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, backwardTarget, config.MoonwalkAcceleration);
+            }
+            else
+            {
+                // Stick let go during the trot: slide to a stop on the character's traction.
+                fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, Fixed.Zero, config.Traction);
+            }
         }
 
         private static void UpdateRun(ref FighterState fighter, in InputEvents input, FighterConfig config)
@@ -163,16 +178,16 @@ namespace DreamsOfEverus.Simulation
             if (input.HeldDirectionX == 0)
             {
                 SetAction(ref fighter, FighterAction.Idle);
-                fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, Fixed.Zero, config.GroundFriction);
+                fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, Fixed.Zero, config.Traction);
                 return;
             }
 
-            fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, config.RunSpeed * fighter.Facing, config.GroundAcceleration);
+            fighter.Velocity.X = GroundSteer(fighter.Velocity.X, config.RunSpeed * fighter.Facing, fighter.Facing, config);
         }
 
         private static void UpdateRunTurnaround(ref FighterState fighter, in InputEvents input, FighterConfig config)
         {
-            fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, Fixed.Zero, config.RunTurnaroundDeceleration);
+            fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, Fixed.Zero, config.Traction);
 
             if (fighter.ActionTick >= config.RunTurnaroundTicks)
             {
@@ -197,12 +212,12 @@ namespace DreamsOfEverus.Simulation
                 fighter.Facing = (sbyte)input.HeldDirectionX;
 
                 Fixed targetSpeed = config.CrawlSpeed * input.StickX / InputFrame.StickMax;
-                fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, targetSpeed, config.GroundAcceleration);
+                fighter.Velocity.X = GroundSteer(fighter.Velocity.X, targetSpeed, input.HeldDirectionX, config);
             }
             else
             {
                 if (fighter.Action != FighterAction.Crouch) SetAction(ref fighter, FighterAction.Crouch);
-                fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, Fixed.Zero, config.GroundFriction);
+                fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, Fixed.Zero, config.Traction);
             }
         }
 
@@ -269,6 +284,17 @@ namespace DreamsOfEverus.Simulation
 
             Fixed change = alreadyFaster ? config.AirFriction : config.AirAcceleration;
             fighter.Velocity.X = Fixed.MoveTowards(fighter.Velocity.X, targetSpeed, change);
+        }
+
+        /// <summary>
+        /// Ground steering toward a target speed. Speeding up uses ground acceleration, but if the fighter is
+        /// already going faster than the target in that direction (e.g. landing from a dash jump), the extra
+        /// speed bleeds off on traction, so slippery characters slide further.
+        /// </summary>
+        private static Fixed GroundSteer(Fixed velocity, Fixed target, int direction, FighterConfig config)
+        {
+            bool alreadyFaster = direction > 0 ? velocity > target : velocity < target;
+            return Fixed.MoveTowards(velocity, target, alreadyFaster ? config.Traction : config.GroundAcceleration);
         }
 
         private static void Land(ref FighterState fighter)

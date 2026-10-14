@@ -26,7 +26,7 @@ namespace DreamsOfEverus.Game
             float speedY = p.Velocity.Y.ToFloat() * GameSimulation.TicksPerSecond;
 
             string text =
-                $"Action: {p.Action} (frame {p.ActionTick})\n" +
+                $"Action: {p.Action} (frame {p.ActionTick}){(IsMoonwalking(p) ? "  MOONWALKING" : "")}\n" +
                 $"Facing: {(p.Facing > 0 ? "Right" : "Left")}\n" +
                 $"Speed: {speedX:0.0}, {speedY:0.0} units/s\n" +
                 $"Ground: {p.Ground}\n" +
@@ -35,6 +35,12 @@ namespace DreamsOfEverus.Game
                 $"Tick: {runner.State.Tick}   (F1 hides this)";
 
             GUI.Label(new Rect(12, 12, 600, 220), text, style);
+        }
+
+        // Sliding backward while still dashing forward.
+        private static bool IsMoonwalking(FighterState p)
+        {
+            return p.Action == FighterAction.Dash && Fixed.Sign(p.Velocity.X) == -p.Facing;
         }
     }
 }

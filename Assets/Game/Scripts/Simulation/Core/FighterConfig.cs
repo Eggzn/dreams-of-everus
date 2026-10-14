@@ -15,12 +15,12 @@ namespace DreamsOfEverus.Simulation
         // Ground
         public Fixed WalkSpeed;
         public Fixed GroundAcceleration;
-        public Fixed GroundFriction;
+        public Fixed Traction;              // How quickly speed is shed on the ground: stopping, skids, slides. Low = slippery
         public Fixed DashSpeed;
         public int TrotTicks;               // How long the initial dash lasts (from the trot distance)
         public Fixed RunSpeed;
         public int RunTurnaroundTicks;
-        public Fixed RunTurnaroundDeceleration;
+        public Fixed MoonwalkAcceleration;  // How strongly a gentle back-tilt during the trot pushes backward. 0 = no moonwalk
 
         // Crouch and crawl
         public Fixed CrouchHeight;          // Body height while crouching or crawling

@@ -20,12 +20,12 @@ namespace DreamsOfEverus.Tests
 
             WalkSpeed = F(1, 10),
             GroundAcceleration = F(1, 20),
-            GroundFriction = F(1, 20),
+            Traction = F(1, 20),
             DashSpeed = F(1, 5),
             TrotTicks = 10,
             RunSpeed = F(3, 20),
             RunTurnaroundTicks = 8,
-            RunTurnaroundDeceleration = F(1, 50),
+            MoonwalkAcceleration = F(1, 20),
 
             CrouchHeight = F(1),
             CanCrawl = true,

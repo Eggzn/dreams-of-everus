@@ -24,6 +24,16 @@ namespace DreamsOfEverus.Game
             };
         }
 
+        /// <summary>
+        /// The keyboard walk key: while it's held, movement only goes as far as a gentle tilt,
+        /// so pressing a direction walks (or moonwalks) instead of dashing.
+        /// </summary>
+        public static Vector2 ApplyWalkKey(Vector2 move, bool walkHeld, int walkTiltPercent)
+        {
+            if (!walkHeld) return move;
+            return move * (walkTiltPercent / 100f); // each axis on its own, so Shift + Down + Right still crawls
+        }
+
         private static sbyte ToStickValue(float axis)
         {
             return (sbyte)Mathf.RoundToInt(Mathf.Clamp(axis, -1f, 1f) * InputFrame.StickMax);

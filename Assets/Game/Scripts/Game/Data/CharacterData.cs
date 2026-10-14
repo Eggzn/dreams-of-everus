@@ -1,6 +1,7 @@
 using System;
 using DreamsOfEverus.Simulation;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace DreamsOfEverus.Game
 {
@@ -27,8 +28,9 @@ namespace DreamsOfEverus.Game
         [Min(0f)] public float walkSpeed = 4f;
         [Tooltip("How quickly walking and running speed up, in units per second, per second.")]
         [Min(0f)] public float groundAcceleration = 60f;
-        [Tooltip("How quickly the character slides to a stop with the stick centered, in units per second, per second.")]
-        [Min(0f)] public float groundFriction = 40f;
+        [Tooltip("Traction: how quickly the character sheds speed on the ground, in units per second, per second. Used for stopping, skids, turnarounds and slides. Low = slippery (slides further), high = grippy.")]
+        [FormerlySerializedAs("groundFriction")]
+        [Min(0.1f)] public float traction = 40f;
 
         [Header("Dash, trot and run (PLACEHOLDER)")]
         [Tooltip("Speed of the initial dash (started by a hard sideways press), in units per second.")]
@@ -37,10 +39,10 @@ namespace DreamsOfEverus.Game
         [Min(0.05f)] public float trotDistance = 2.2f;
         [Tooltip("Top running speed (after the trot), in units per second.")]
         [Min(0f)] public float runSpeed = 9f;
-        [Tooltip("How many frames the run turnaround (turning while running) takes.")]
+        [Tooltip("How many frames the run turnaround (turning while running) takes. The character skids on their traction during it.")]
         [Min(1)] public int runTurnaroundFrames = 12;
-        [Tooltip("How quickly the character skids to a stop during the run turnaround, in units per second, per second.")]
-        [Min(0f)] public float runTurnaroundDeceleration = 60f;
+        [Tooltip("Moonwalk strength: how quickly a gentle tilt back during the trot pushes the character backward while they keep facing forward, in units per second, per second. 0 = can't moonwalk. Higher = stronger, longer moonwalks.")]
+        [Min(0f)] public float moonwalkAcceleration = 150f;
 
         [Header("Crouch and crawl (PLACEHOLDER)")]
         [Tooltip("Body height while crouching or crawling, in units. Lets the character fit under low ceilings.")]
@@ -93,12 +95,12 @@ namespace DreamsOfEverus.Game
 
             config.WalkSpeed = PerTick(walkSpeed);
             config.GroundAcceleration = PerTickSquared(groundAcceleration);
-            config.GroundFriction = PerTickSquared(groundFriction);
+            config.Traction = PerTickSquared(traction);
             config.DashSpeed = PerTick(dashSpeed);
             config.TrotTicks = Math.Max(1, (int)Math.Ceiling(trotDistance / (dashSpeed / TicksPerSecond)));
             config.RunSpeed = PerTick(runSpeed);
             config.RunTurnaroundTicks = runTurnaroundFrames;
-            config.RunTurnaroundDeceleration = PerTickSquared(runTurnaroundDeceleration);
+            config.MoonwalkAcceleration = PerTickSquared(moonwalkAcceleration);
 
             config.CrouchHeight = Fixed.FromFloat(Math.Min(crouchHeight, bodyHeight));
             config.CanCrawl = canCrawl;
