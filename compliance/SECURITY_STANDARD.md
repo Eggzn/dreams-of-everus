@@ -1,4 +1,6 @@
-# Security Standard (all games)
+# Security Standard (studio-wide)
+
+> Shared by every game repo, identical everywhere. Works with `COMPLIANCE_STANDARD.md` and `ANALYTICS_AND_FEEDBACK.md`.
 
 How we protect the code, the IP, player data and the live game from people who poke at it, including people running their own AI agents to scrape builds, websites and repos for anything left behind.
 
@@ -17,7 +19,7 @@ How we protect the code, the IP, player data and the live game from people who p
 ## 2. Secrets never touch the repo or the client
 - No API keys, database passwords, service-role keys, signing keys, webhook secrets or tokens in code, configs, ScriptableObjects, Unity assets, JSON, or comments. They live in environment variables / the host's secret store (e.g. Cloudflare `wrangler secret`, `.dev.vars` for local only).
 - `.gitignore` covers: `.env*`, `.dev.vars`, `*.pem`, `*.key`, `*.p12`, `*.keystore`, `google-services.json` / `GoogleService-Info.plist` (if they hold anything sensitive), build folders, local tool caches (`.wrangler/`, `Library/`, `Logs/`, `UserSettings/`), and `.claude/settings.local.json`.
-- **Anything a client needs is public by definition.** If the game client must hold a key, that key must be safe to leak (a public/anon key restricted by server rules).
+- **Anything a client needs is public by definition.** If the game client must hold a key, that key must be safe to leak (a public/anon key restricted by server rules). A PostHog **project** key (`phc_…`) is fine in the client because it can only send data. A PostHog **personal API** key (`phx_…`) can read everything and must never be in the client or repo.
 - If a secret is ever committed: **rotate it immediately** (assume it's stolen), then remove it from history. Deleting the file is not enough.
 - Before every push, run a secret scan (e.g. `gitleaks detect`), or ask Claude to scan the diff for secrets.
 
@@ -36,6 +38,7 @@ Check that release builds and live sites contain none of these:
 - **Comments and logs** revealing internals: internal URLs, server addresses, TODOs about security holes, player data in logs, verbose error messages sent to players.
 - **Private material**: unreleased art, private builds, design docs and anything in private folders stay out of git and out of builds.
 - AI session leftovers: scratch scripts, pasted keys, exported chat logs, `.claude/settings.local.json`.
+- Analytics in development: dev/editor sessions must not send analytics or recordings to the live PostHog project (use a separate dev project, or disable capture in editor/dev builds).
 - Note: `robots.txt` does **not** protect anything. It's a public list that scrapers read first. Never list secret paths there.
 
 ## 5. Harden what ships
