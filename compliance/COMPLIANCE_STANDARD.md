@@ -20,6 +20,8 @@ The three rules behind everything below:
 - iOS: show the App Tracking Transparency prompt before any tracking or use of the advertising ID.
 - Default to no ad SDKs. Adding one is an owner decision, not a coding decision.
 - Crash reporting: strip personal info where possible, and disclose it in the Privacy Policy.
+- **No session replay** (tools that record clicks, scrolls and keystrokes). If one is ever approved, it must mask every input field and never capture passwords or payment details. Session-replay recording is the basis of a wave of California wiretap (CIPA) lawsuits.
+- **Websites load nothing from third parties before consent.** Self-host fonts (no Google Fonts links), icons and scripts. Embeds (YouTube, Maps, Discord widgets) only load after the visitor clicks to allow them. Loading Google Fonts from Google's servers sends the visitor's IP to Google; a Munich court awarded €100 per visitor for this in 2022.
 
 ## 3. Age rules
 - Every project documents its age policy in `compliance/CONSENT_PLAN.md`.
