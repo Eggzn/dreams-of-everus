@@ -65,3 +65,11 @@ Never rename a term or invent a new one without asking.
 - **Commit to Git** after each working step, with a clear message. Never force-push or rewrite history.
 - **Finish each milestone** with a short checklist the creator can follow to test it.
 - **Keep code readable.** Use clear names and brief comments, and avoid clever abstractions.
+
+## Compliance and security (read first, every session)
+
+Before starting work, read `compliance/COMPLIANCE_STANDARD.md` and `compliance/SECURITY_STANDARD.md`. Follow them for any change that touches player data, accounts, chat, purchases, analytics, SDKs, servers, networking, builds, deploys or secrets.
+
+- Before adding any SDK, data field, account feature, chat, purchase or analytics, update `compliance/DATA_INVENTORY.md` and `compliance/PRIVACY_POLICY.md` in the same change.
+- Never put secrets in code, assets or commits. Never ship debug/cheat/admin tools in release builds. The server decides; the client only asks.
+- If `compliance/DATA_INVENTORY.md` doesn't exist yet, this project hasn't had its full compliance pass. Tell the owner at the start of the session and offer to run it.
