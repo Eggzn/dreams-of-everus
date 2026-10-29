@@ -1,5 +1,7 @@
 # Security Standard (studio-wide)
 
+> **Part of The Protocol** (source of truth: `C:\Users\Andre\Desktop\AIGames\the-protocol\standards\`). Each repo's `compliance/` folder holds an identical copy. Change it in The Protocol, then sync (prompt 07).
+>
 > Shared by every game repo, identical everywhere. Works with `COMPLIANCE_STANDARD.md` and `ANALYTICS_AND_FEEDBACK.md`.
 
 How we protect the code, the IP, player data and the live game from people who poke at it, including people running their own AI agents to scrape builds, websites and repos for anything left behind.

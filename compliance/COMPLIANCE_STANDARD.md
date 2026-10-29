@@ -1,5 +1,7 @@
 # Compliance Standard (studio-wide, v2)
 
+> **Part of The Protocol** (source of truth: `C:\Users\Andre\Desktop\AIGames\the-protocol\standards\`). Each repo's `compliance/` folder holds an identical copy. Change it in The Protocol, then sync (prompt 07).
+>
 > The shared rulebook for every game Andre / Nest Eggz'n Production LLC makes: Egg Nest, Block Brawl, Dreams of Everus, Vessel, ShardSlapper, Interlewd, and anything new. It applies to every platform (Steam, iOS, Google Play, websites) and every Claude session, and is copied **identically** into each repo's `compliance/` folder. To change it, change it everywhere.
 >
 > Not legal advice. Anything marked **[lawyer]** is checked by a lawyer before launch. v2 (Oct 28, 2026) merges Egg Nest's standard with the studio standard, and adds the rules from two vetted videos: legal docs/consent/database (@duck.tate) and the vibe-coder liability list (@adilet.fndr). It also adds the analytics, session replay and review rules from `ANALYTICS_AND_FEEDBACK.md`.

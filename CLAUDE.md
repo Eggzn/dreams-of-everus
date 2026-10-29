@@ -66,11 +66,12 @@ Never rename a term or invent a new one without asking.
 - **Finish each milestone** with a short checklist the creator can follow to test it.
 - **Keep code readable.** Use clear names and brief comments, and avoid clever abstractions.
 
-## Compliance and security (read first, every session)
+## The Protocol (read first, every session)
 
-Before starting work, read the three shared studio files in `compliance/`: `COMPLIANCE_STANDARD.md`, `SECURITY_STANDARD.md` and `ANALYTICS_AND_FEEDBACK.md`. They are identical in every repo; never edit them in just one. Follow them for any change that touches player data, accounts, chat, uploads, email, purchases, analytics, session replay, review prompts, SDKs, servers, networking, builds, deploys or secrets.
+This project follows **The Protocol**, the studio's master rules at `C:\Users\Andre\Desktop\AIGames\the-protocol` (`README.md` there explains it).
 
-- Before adding any SDK, data field, account feature, chat, purchase or analytics, update `compliance/DATA_INVENTORY.md` and `compliance/PRIVACY_POLICY.md` in the same change.
-- Analytics and session replay load only after the player opts in; replay never for under-18s; review prompts are never gated. Details are in `ANALYTICS_AND_FEEDBACK.md`.
-- Never put secrets in code, assets or commits. Never ship debug/cheat/admin tools in release builds. The server decides; the client only asks.
-- If `compliance/DATA_INVENTORY.md` doesn't exist yet, this project hasn't had its full compliance pass. Tell the owner at the start of the session and offer to run it.
+- Read the three shared files in `compliance/`: `COMPLIANCE_STANDARD.md`, `SECURITY_STANDARD.md`, `ANALYTICS_AND_FEEDBACK.md`. They're identical copies of The Protocol's; never edit them here only.
+- Follow them for any change that touches player data, accounts, chat, uploads, email, purchases, analytics, session replay, review prompts, SDKs, servers, networking, builds, deploys or secrets. Update `compliance/DATA_INVENTORY.md` and `compliance/PRIVACY_POLICY.md` in the same change.
+- Analytics and replay only after opt-in; replay never for under-18s; review prompts never gated. No secrets in code, assets or commits. No debug/cheat/admin tools in release builds. The server decides; the client only asks.
+- **Agent team:** subagents are in `.claude/agents/` (researcher, tester, builder, qa, plus the art team where set up). Follow The Protocol's `standards/AGENT_TEAM.md`: brain plans, tests first, builders build, QA checks, Andre judges fun and look.
+- If `compliance/DATA_INVENTORY.md` doesn't exist yet, this project hasn't had its full compliance pass. Tell Andre at the start of the session and offer to run it (Protocol prompt 03).

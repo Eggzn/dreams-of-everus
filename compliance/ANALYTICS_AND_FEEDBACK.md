@@ -1,5 +1,7 @@
 # Analytics, Session Replay and Reviews (studio-wide playbook)
 
+> **Part of The Protocol** (source of truth: `C:\Users\Andre\Desktop\AIGames\the-protocol\standards\`). Each repo's `compliance/` folder holds an identical copy. Change it in The Protocol, then sync (prompt 07).
+>
 > Shared by every game repo, identical everywhere. It covers the two tools from the @ayoships video, vetted against our legal rules:
 > 1. **PostHog analytics + session replays**: see where players get stuck, quit or get confused.
 > 2. **Asking for reviews at the right moment**, done the allowed way (no review gating).
