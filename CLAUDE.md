@@ -6,13 +6,6 @@ The full design lives in `Docs/GameDesign.md`. Read the sections that matter for
 
 `Docs/CodeGuide.md` explains every code file line by line for the creator, and `Docs/Milestone1Checklist.md` is the Milestone 1 test checklist. When code changes, update the matching section of the code guide in the same commit.
 
-## Start here next session (Protocol v1.2 follow-up)
-
-The Protocol v1.2 was installed here on 2026-11-01 from another project's session, so nobody has checked it in this project yet. **Before any other work, tell Andre this section is here and go through it with him.** Delete this section once every item is done.
-
-1. Confirm the setup loaded: `protocol/` is in this session, and the agents in `.claude/agents/` are available as subagents. If not, say so.
-2. Full compliance pass not done yet (no `compliance/DATA_INVENTORY.md`): offer Protocol prompt 03.
-
 ## Current milestone
 
 **Milestone 1: Movement Sandbox V0.1.** Only build what is listed here.
